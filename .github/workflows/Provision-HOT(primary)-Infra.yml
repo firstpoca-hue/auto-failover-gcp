@@ -12,7 +12,7 @@ on:
 env:
   TF_IN_AUTOMATION: "true"
   WORKING_DIR: root
-  TFVARS_PATH: ../env/dev/terraform.tfvars
+  TFVARS_PATH: "terraform.tfvars"
 
 jobs:
 
