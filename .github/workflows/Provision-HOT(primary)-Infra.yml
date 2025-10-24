@@ -1,0 +1,273 @@
+name: Provision-HOT(primary)-Infra
+
+on:
+  workflow_dispatch:
+    inputs:
+      force_apply:
+        description: "Force apply even if plan artifact is missing or no changes detected"
+        required: false
+        type: boolean
+        default: false
+
+env:
+  TF_IN_AUTOMATION: "true"
+  WORKING_DIR: root
+  TFVARS_PATH: ../env/dev/terraform.tfvars
+
+jobs:
+
+  # -------------------------------
+  # 1️⃣ Terraform Init
+  # -------------------------------
+  init:
+    name: Terraform Init
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.WORKING_DIR }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: Google Auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Terraform Init
+        run: terraform init -reconfigure
+
+      - name: Upload .terraform folder
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-initialized
+          path: .terraform
+
+
+  # -------------------------------
+  # 2️⃣ Checkov Scan
+  # -------------------------------
+  checkov-scan:
+    name: 🛡️ Checkov Scan
+    runs-on: ubuntu-latest
+    needs: init
+    defaults:
+      run:
+        working-directory: ${{ env.WORKING_DIR }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Checkov
+        run: pip install checkov
+
+      - name: Run Checkov (continue but mark as warning)
+        id: checkov
+        continue-on-error: true
+        run: |
+          echo "🔍 Running Checkov..."
+          checkov -d . --quiet --compact > checkov.output
+          if [ $? -ne 0 ]; then
+            echo "⚠️ Checkov found policy violations — continuing pipeline..."
+            exit 78
+          else
+            echo "✅ Checkov passed without issues."
+          fi
+
+      - name: Upload Checkov Output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkov.output
+          path: ${{ env.WORKING_DIR }}/checkov.output
+
+      - name: Summarize Checkov Results
+        if: always()
+        run: |
+          echo "### 🛡️ Checkov Scan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "⚠️ Completed with potential policy violations (review checkov.output artifact)" >> $GITHUB_STEP_SUMMARY
+
+
+  # -------------------------------
+  # 3️⃣ Trivy Scan
+  # -------------------------------
+  trivy-scan:
+    name: 🔍 Trivy Scan
+    runs-on: ubuntu-latest
+    needs: init
+    defaults:
+      run:
+        working-directory: ${{ env.WORKING_DIR }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Trivy (continue but mark as warning)
+        id: trivy
+        continue-on-error: true
+        run: |
+          echo "🔍 Running Trivy..."
+          docker run --rm -v $PWD:/scan aquasec/trivy fs --severity HIGH,CRITICAL /scan > trivy.output
+          if [ $? -ne 0 ]; then
+            echo "⚠️ Trivy found vulnerabilities — marking job as warning."
+            exit 78
+          else
+            echo "✅ Trivy scan passed without critical findings."
+          fi
+
+      - name: Upload Trivy Output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy.output
+          path: ${{ env.WORKING_DIR }}/trivy.output
+
+      - name: Summarize Trivy Results
+        if: always()
+        run: |
+          echo "### 🔍 Trivy Scan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "⚠️ Completed with potential vulnerabilities (review trivy.output artifact)" >> $GITHUB_STEP_SUMMARY
+
+
+
+  # -------------------------------
+  # 4️⃣ Terraform Plan
+  # -------------------------------
+  plan:
+    name: Terraform Plan
+    needs: [init, checkov-scan, trivy-scan]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.WORKING_DIR }}
+    outputs:
+      has_changes: ${{ steps.plan.outputs.has_changes }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: Google Auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Terraform Init
+        run: terraform init -reconfigure
+
+      - name: Terraform Plan
+        id: plan
+        shell: bash
+        run: |
+          set -o pipefail
+          set +e
+          terraform validate
+          terraform plan \
+            -var-file="${{ env.TFVARS_PATH }}" \
+            -input=false -no-color -out=tfplan.bin -detailed-exitcode | tee plan.txt
+          code=$?
+          set -e
+
+          if [ $code -eq 0 ]; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          elif [ $code -eq 2 ]; then
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Plan failed. See plan.txt"
+            exit $code
+          fi
+
+      # NEW: Always upload the human-readable plan output (like Trivy/Checkov)
+      - name: Upload Plan Output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: plan.output
+          path: ${{ env.WORKING_DIR }}/plan.txt
+
+      # EXISTING: Only upload the binary plan when changes exist
+      - name: Upload Plan Artifact (binary)
+        if: ${{ steps.plan.outputs.has_changes == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: |
+            tfplan.bin
+            plan.txt
+
+      # NEW: Summary for the Plan step
+      - name: Summarize Plan Results
+        if: always()
+        run: |
+          echo "### 📋 Terraform Plan Summary" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.plan.outputs.has_changes }}" = "true" ]; then
+            echo "- **Changes Detected:** Yes" >> $GITHUB_STEP_SUMMARY
+            echo "- Uploaded artifacts: \`tfplan\` (tfplan.bin, plan.txt), \`plan.output\` (plan.txt)" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ steps.plan.outputs.has_changes }}" = "false" ]; then
+            echo "- **Changes Detected:** No" >> $GITHUB_STEP_SUMMARY
+            echo "- Uploaded artifact: \`plan.output\` (plan.txt)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- Plan completed with a non-standard status. Review the \`plan.output\` artifact." >> $GITHUB_STEP_SUMMARY
+          fi
+
+
+  # -------------------------------
+  # 5️⃣ Terraform Apply
+  # -------------------------------
+  apply:
+    name: Terraform Apply
+    needs: plan
+    if: ${{ inputs.force_apply || needs.plan.outputs.has_changes == 'true' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.WORKING_DIR }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: Google Auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Terraform Init
+        run: terraform init -reconfigure
+
+      - name: Download Plan Artifact
+        if: ${{ needs.plan.outputs.has_changes == 'true' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan
+          path: .
+
+      # UPDATED: Capture apply output to file (like Trivy/Checkov) when applying from saved plan
+      - name: Terraform Apply (from plan)
+        if: ${{ needs.plan.outputs.has_changes == 'true' }}
+        run: |
+          terraform apply -input=false -auto-approve tfplan.bin | tee apply.output
+
+      # UPDATED: Capture apply output to file (like Trivy/Checkov) when forced
+      - name: Terraform Apply (forced)
+        if: ${{ inputs.force_apply && needs.plan.outputs.has_changes != 'true' }}
+        run: |
+          terraform apply -input=false -auto-approve -var-file="${{ env.TFVARS_PATH }}" | tee apply.output
+
+      # NEW: Always upload the apply output artifact
+      - name: Upload Apply Output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: apply.output
+          path: ${{ env.WORKING_DIR }}/apply.output
+
+      # NEW: Summary for Apply
+      - name: Summarize Apply Results
+        if: always()
+        run: |
+          echo "### ✅ Terraform Apply Summary" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.plan.outputs.has_changes }}" = "true" ]; then
+            echo "- **Mode:** Apply from saved plan (tfplan.bin)" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ inputs.force_apply }}" = "true" ]; then
+            echo "- **Mode:** Forced apply with tfvars" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **Mode:** Unknown (check logs)" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "- Uploaded artifact: \`apply.output\`" >> $GITHUB_STEP_SUMMARY
