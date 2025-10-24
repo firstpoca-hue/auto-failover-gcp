@@ -44,9 +44,9 @@ variable "lb_name" {
   default = "app-lb-backend"
 }
 
-variable "primary_neg" {
-  description = "Primary backend NEG for the load balancer"
-}
+# variable "primary_neg" {
+#   description = "Primary backend NEG for the load balancer"
+# }
 
 variable "health_check_path" {
   default = "/"
