@@ -188,16 +188,19 @@ jobs:
             tfplan.bin
             plan.txt
 
-      - name: Summarize Plan Results
-        if: always()
+      - name: Terraform Plan Summary
+        env:
+          TF_IN_AUTOMATION: true
         run: |
           echo "### 📋 Terraform Plan Summary" >> $GITHUB_STEP_SUMMARY
-          if [ "${{ steps.plan.outputs.has_changes }}" = "true" ]; then
+          if [ "${{ env.TF_HAS_CHANGES }}" = "true" ]; then
             echo "- **Changes Detected:** Yes" >> $GITHUB_STEP_SUMMARY
-          elif [ "${{ steps.plan.outputs.has_changes }}" = "false" ]; then
+          elif [ "${{ env.TF_HAS_CHANGES }}" = "false" ]; then
             echo "- **Changes Detected:** No" >> $GITHUB_STEP_SUMMARY
           else
             echo "- Plan completed with a non-standard status." >> $GITHUB_STEP_SUMMARY
+          fi
+
 
 
   # -------------------------------
