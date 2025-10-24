@@ -27,24 +27,33 @@ module "gke_secondary" {
   enabled       = var.deploy_secondary               # 🔹 Passed to module for internal control
 }
 
-# module "database" {
-#   source = "./modules/database"
-#   project_id = var.project_id
-#   name_prefix = "app"
-#   region_primary = var.primary_region
-#   region_replica = var.secondary_region
-#   network = module.network.vpc_id
-#   enable_replica = true
-# }
+module "database" {
+  source           = "./modules/database"
+  project_id       = var.project_id
+  name_prefix      = "app"
+  primary_region   = var.primary_region
+  secondary_region = var.secondary_region
+  database_version = var.database_version
+  network          = module.network.vpc_id
+  enable_replica   = true
+  db_tier = var.db_tier
+}
 
-# module "lb" {
-#   source = "./modules/lb"
-#   name = "app-lb"
-#   backends = [] # primary backend NEG filled after k8s NEG exists; failover run will add secondary
-# }
+module "lb" {
+  source = "./modules/lb"
+  name    = "app-lb"
+  backends = []
 
-# module "monitoring" {
-#   source = "./modules/monitoring"
-#   project_id = var.project_id
-#   alert_name = var.alert_email
-# }
+  lb_name            = var.lb_name           # ✅ fixed name
+  neg                = module.gke.primary_neg_self_link       # ✅ pass NEG
+  health_check_path  = var.health_check_path # ✅ fixed name
+  health_check_port  = var.health_check_port # ✅ fixed name
+}
+    # primary backend NEG filled after k8s NEG exists; failover run will add secondary
+
+
+module "monitoring" {
+  source = "./modules/monitoring"
+  project_id = var.project_id
+  alert_email = var.alert_email
+}

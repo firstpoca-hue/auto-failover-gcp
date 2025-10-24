@@ -34,3 +34,29 @@ variable "alert_email"{
   type = string
   default = "firstpoca@gmail.com"
 }
+variable"database_version"{
+
+}
+variable "db_tier" {
+  
+}
+variable "lb_name" {
+  default = "app-lb-backend"
+}
+
+variable "primary_neg" {
+  description = "Primary backend NEG for the load balancer"
+}
+
+variable "health_check_path" {
+  default = "/"
+}
+
+variable "health_check_port" {
+  default = 80
+}
+
+# variable "primary_neg" {
+#   description = "Primary backend NEG for the load balancer"
+#   default     = "zones/${var.primary_neg_zone}/networkEndpointGroups/${var.primary_neg_name}"
+# }

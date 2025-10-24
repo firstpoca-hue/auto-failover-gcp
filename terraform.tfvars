@@ -30,8 +30,9 @@ enable_private_nodes    = false
 ############################
 # Load Balancer (HTTPS)
 ############################
-lb_name            = "app-lb"
-health_check_path  = "/healthz"
+lb_name            = "app-lb-backend"
+health_check_path  = "/"
+health_check_port = 80
  
 # Using self-signed certs (files live in modules/lb/certs/)
 use_managed_cert   = false
@@ -46,11 +47,13 @@ secondary_neg_zone = "asia-southeast1-a"
 ############################
 # Database (Cloud SQL Postgres)
 ############################
-db_name_prefix   = "app"
-db_version       = "MYSQL_8_0"
-db_tier          = "db-custom-2-7680"
+db_name_prefix   = "DRP"
+database_version      = "MYSQL_8_0"
+db_tier          = "db-n1-standard-1"
 db_storage_gb    = 50
-enable_replica   = true  # pre-create cross-region read replica
+enable_replica   = true 
+db_name ="primary"
+ # pre-create cross-region read replica
  
 ############################
 # Monitoring & Alerts
