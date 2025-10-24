@@ -8,6 +8,7 @@ resource "google_sql_database_instance" "primary" {
   project          = var.project_id
   region           = var.primary_region
   database_version = var.database_version
+  deletion_protection = false
 
   settings {
     tier              = var.db_tier
@@ -32,6 +33,7 @@ resource "google_sql_database_instance" "replica" {
   project          = var.project_id
   region           = var.secondary_region
   database_version = var.database_version
+  deletion_protection = false
 
   master_instance_name = google_sql_database_instance.primary.name
 
