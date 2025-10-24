@@ -60,3 +60,7 @@ variable "health_check_port" {
 #   description = "Primary backend NEG for the load balancer"
 #   default     = "zones/${var.primary_neg_zone}/networkEndpointGroups/${var.primary_neg_name}"
 # }
+
+variable "db_name_prefix" {
+  
+}
