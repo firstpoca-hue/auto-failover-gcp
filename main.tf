@@ -41,22 +41,22 @@ module "database" {
   db_tier = var.db_tier
 }
 
-module "lb" {
-  source = "./modules/lb"
-  name    = "app-lb"
-  backends = []
+# module "lb" {
+#   source = "./modules/lb"
+#   name    = "app-lb"
+#   backends = []
 
-  lb_name            = var.lb_name           # ✅ fixed name
-  neg                = module.gke_primary.neg_self_link  # ✅ pass NEG
-  health_check_path  = var.health_check_path # ✅ fixed name
-  health_check_port  = var.health_check_port # ✅ fixed name
-  depends_on = [module.gke_primary]
-}
-    # primary backend NEG filled after k8s NEG exists; failover run will add secondary
+#   lb_name            = var.lb_name           # ✅ fixed name
+#   neg                = module.gke_primary.neg_self_link  # ✅ pass NEG
+#   health_check_path  = var.health_check_path # ✅ fixed name
+#   health_check_port  = var.health_check_port # ✅ fixed name
+#   depends_on = [module.gke_primary]
+# }
+#     # primary backend NEG filled after k8s NEG exists; failover run will add secondary
 
 
-module "monitoring" {
-  source = "./modules/monitoring"
-  project_id = var.project_id
-  alert_email = var.alert_email
-}
+# module "monitoring" {
+#   source = "./modules/monitoring"
+#   project_id = var.project_id
+#   alert_email = var.alert_email
+# }
