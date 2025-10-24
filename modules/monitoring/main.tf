@@ -1,18 +1,17 @@
 resource "google_monitoring_alert_policy" "gke_down" {
   display_name = "GKE Cluster Down"
-
-  combiner = "OR"  # OR / AND
+  combiner = "OR"
 
   conditions {
     display_name = "Cluster Not Healthy"
     condition_threshold {
-      filter          = "metric.type=\"kubernetes.io/container/uptime\" AND resource.type=\"k8s_cluster\""
+      filter          = "metric.type=\"kubernetes.io/cluster/health\" AND resource.type=\"k8s_cluster\""
       comparison      = "COMPARISON_LT"
       threshold_value = 1
       duration        = "60s"
       aggregations {
-        alignment_period     = "60s"
-        per_series_aligner   = "ALIGN_MEAN"
+        alignment_period   = "60s"
+        per_series_aligner = "ALIGN_MEAN"
       }
     }
   }

@@ -9,6 +9,7 @@ module "network" {
 module "gke_primary" {
   source        = "./modules/gke"
   name          = "gke-primary"
+  project_id    = var.project_id  
   region        = var.primary_region
   network_id    = module.network.vpc_id
   subnetwork_id = module.network.primary_subnet_id   # 🔹 FIXED: use primary subnet
@@ -21,6 +22,7 @@ module "gke_secondary" {
   count         = var.deploy_secondary ? 1 : 0       # 🔹 <--- Key change: evaluated only if true
   source        = "./modules/gke"
   name          = "gke-secondary"
+  project_id =    var.project_id
   region        = var.secondary_region
   network_id    = module.network.vpc_id
   subnetwork_id = module.network.secondary_subnet_id

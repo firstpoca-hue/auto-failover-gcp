@@ -26,3 +26,4 @@ variable "enabled" {
   type        = bool
   default     = true
 }
+variable project_id{}

@@ -12,6 +12,10 @@ resource "google_sql_database_instance" "primary" {
   settings {
     tier              = var.db_tier
     availability_type = "REGIONAL"
+    database_flags {
+      name  = "log_bin"
+      value = "on"
+    }
   }
 }
 
