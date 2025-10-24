@@ -29,30 +29,30 @@ module "gke_secondary" {
   enabled       = var.deploy_secondary               # 🔹 Passed to module for internal control
 }
 
-module "database" {
-  source           = "./modules/database"
-  project_id       = var.project_id
-  name_prefix      = var.db_name_prefix
-  primary_region   = var.primary_region
-  secondary_region = var.secondary_region
-  database_version = var.database_version
-  network          = module.network.vpc_id
-  enable_replica   = true
-  db_tier = var.db_tier
-}
-
-# module "lb" {
-#   source = "./modules/lb"
-#   name    = "app-lb"
-#   backends = []
-
-#   lb_name            = var.lb_name           # ✅ fixed name
-#   neg                = module.gke_primary.neg_self_link  # ✅ pass NEG
-#   health_check_path  = var.health_check_path # ✅ fixed name
-#   health_check_port  = var.health_check_port # ✅ fixed name
-#   depends_on = [module.gke_primary]
+# module "database" {
+#   source           = "./modules/database"
+#   project_id       = var.project_id
+#   name_prefix      = var.db_name_prefix
+#   primary_region   = var.primary_region
+#   secondary_region = var.secondary_region
+#   database_version = var.database_version
+#   network          = module.network.vpc_id
+#   enable_replica   = true
+#   db_tier = var.db_tier
 # }
-#     # primary backend NEG filled after k8s NEG exists; failover run will add secondary
+
+module "lb" {
+  source = "./modules/lb"
+  name    = "app-lb"
+  backends = []
+
+  lb_name            = var.lb_name           # ✅ fixed name
+  neg                = module.gke_primary.neg_self_link  # ✅ pass NEG
+  health_check_path  = var.health_check_path # ✅ fixed name
+  health_check_port  = var.health_check_port # ✅ fixed name
+  depends_on = [module.gke_primary]
+}
+    # primary backend NEG filled after k8s NEG exists; failover run will add secondary
 
 
 # module "monitoring" {
