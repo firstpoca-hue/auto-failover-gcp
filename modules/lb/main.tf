@@ -8,7 +8,7 @@ resource "google_compute_global_address" "lb_ip" {
 resource "google_compute_ssl_certificate" "self_signed" {
   name        = "${var.name}-self-signed"
   private_key = file("${path.module}/certs/private.key")
-  certificate = file("${path.module}/certs/certificate.csr")
+  certificate = file("${path.module}/certs/certificate.crt")
 }
 
 # 🟩 Use HTTPS protocol since LB proxy is HTTPS
