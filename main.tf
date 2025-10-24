@@ -45,7 +45,7 @@ module "lb" {
   backends = []
 
   lb_name            = var.lb_name           # ✅ fixed name
-  neg                = module.gke.primary_neg_self_link       # ✅ pass NEG
+  neg                = module.gke_primary.primary_neg_self_link       # ✅ pass NEG
   health_check_path  = var.health_check_path # ✅ fixed name
   health_check_port  = var.health_check_port # ✅ fixed name
 }
