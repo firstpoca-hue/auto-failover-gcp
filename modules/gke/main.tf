@@ -29,6 +29,7 @@ resource "google_container_node_pool" "nodes" {
 }
 
 # Output only if cluster is created
+
 output "cluster_name" {
   value       = var.enabled ? google_container_cluster.this[0].name : null  # CHANGED
   description = "GKE cluster name"

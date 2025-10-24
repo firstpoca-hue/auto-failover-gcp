@@ -15,7 +15,7 @@ resource "google_compute_backend_service" "backend" {
   timeout_sec   = 30
   health_checks = [google_compute_health_check.default.self_link]
   backend {
-    group = var.neg_or_mig_self_link   # your NEG/MIG
+    group = var.neg  # your NEG/MIG
   }
 }
 
