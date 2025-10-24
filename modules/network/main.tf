@@ -17,6 +17,15 @@ resource "google_compute_subnetwork" "secondary" {
   network = google_compute_network.vpc.id
 }
 
+resource "google_compute_network_endpoint_group" "app_service_neg" {
+  name                  = "app-service-neg"
+  network               = google_compute_network.vpc.id     # pass from variables.tf or main.tf
+  subnetwork            = google_compute_subnetwork.primary.id 
+  zone                  = "us-central1-a"  # pass from variables.tf or main.tf
+  default_port          = 80
+  network_endpoint_type = "GCE_VM_IP_PORT"   # or SERVERLESS
+}
+
 output "vpc_id" {
   value = google_compute_network.vpc.id
 }
