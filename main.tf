@@ -5,24 +5,28 @@ module "network" {
   secondary_region = var.secondary_region
 }
 
+# --- PRIMARY GKE CLUSTER (always created)
 module "gke_primary" {
   source        = "./modules/gke"
   name          = "gke-primary"
   region        = var.primary_region
-  region_secondary = var.secondary_region
   network_id    = module.network.vpc_id
-  subnetwork_id = module.network.secondary_subnet_id
+  subnetwork_id = module.network.primary_subnet_id   # 🔹 FIXED: use primary subnet
+  enabled       = true                               # 🔹 Explicitly set to always create
 }
 
-
+# --- SECONDARY GKE CLUSTER (only during failover)
+# 🔹 Wrap the module in a conditional block using count
 module "gke_secondary" {
+  count         = var.deploy_secondary ? 1 : 0       # 🔹 <--- Key change: evaluated only if true
   source        = "./modules/gke"
-  name          = "secondary"
+  name          = "gke-secondary"
   region        = var.secondary_region
   network_id    = module.network.vpc_id
   subnetwork_id = module.network.secondary_subnet_id
-  enabled       = var.deploy_secondary
+  enabled       = var.deploy_secondary               # 🔹 Passed to module for internal control
 }
+
 # module "database" {
 #   source = "./modules/database"
 #   project_id = var.project_id
