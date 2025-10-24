@@ -11,7 +11,7 @@ on:
 
 env:
   TF_IN_AUTOMATION: "true"
-  WORKING_DIR: root
+  WORKING_DIR: .        # ✅ Changed from 'root' to current directory
   TFVARS_PATH: "terraform.tfvars"
 
 jobs:
@@ -78,7 +78,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: checkov.output
-          path: ${{ env.WORKING_DIR }}/checkov.output
+          path: checkov.output     # ✅ simplified path (no $WORKING_DIR prefix)
 
       - name: Summarize Checkov Results
         if: always()
@@ -118,14 +118,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: trivy.output
-          path: ${{ env.WORKING_DIR }}/trivy.output
+          path: trivy.output       # ✅ simplified path
 
       - name: Summarize Trivy Results
         if: always()
         run: |
           echo "### 🔍 Trivy Scan Summary" >> $GITHUB_STEP_SUMMARY
           echo "⚠️ Completed with potential vulnerabilities (review trivy.output artifact)" >> $GITHUB_STEP_SUMMARY
-
 
 
   # -------------------------------
@@ -164,7 +163,6 @@ jobs:
             -input=false -no-color -out=tfplan.bin -detailed-exitcode | tee plan.txt
           code=$?
           set -e
-
           if [ $code -eq 0 ]; then
             echo "has_changes=false" >> "$GITHUB_OUTPUT"
           elif [ $code -eq 2 ]; then
@@ -174,15 +172,13 @@ jobs:
             exit $code
           fi
 
-      # NEW: Always upload the human-readable plan output (like Trivy/Checkov)
       - name: Upload Plan Output
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: plan.output
-          path: ${{ env.WORKING_DIR }}/plan.txt
+          path: plan.txt
 
-      # EXISTING: Only upload the binary plan when changes exist
       - name: Upload Plan Artifact (binary)
         if: ${{ steps.plan.outputs.has_changes == 'true' }}
         uses: actions/upload-artifact@v4
@@ -192,20 +188,16 @@ jobs:
             tfplan.bin
             plan.txt
 
-      # NEW: Summary for the Plan step
       - name: Summarize Plan Results
         if: always()
         run: |
           echo "### 📋 Terraform Plan Summary" >> $GITHUB_STEP_SUMMARY
           if [ "${{ steps.plan.outputs.has_changes }}" = "true" ]; then
             echo "- **Changes Detected:** Yes" >> $GITHUB_STEP_SUMMARY
-            echo "- Uploaded artifacts: \`tfplan\` (tfplan.bin, plan.txt), \`plan.output\` (plan.txt)" >> $GITHUB_STEP_SUMMARY
           elif [ "${{ steps.plan.outputs.has_changes }}" = "false" ]; then
             echo "- **Changes Detected:** No" >> $GITHUB_STEP_SUMMARY
-            echo "- Uploaded artifact: \`plan.output\` (plan.txt)" >> $GITHUB_STEP_SUMMARY
           else
-            echo "- Plan completed with a non-standard status. Review the \`plan.output\` artifact." >> $GITHUB_STEP_SUMMARY
-          fi
+            echo "- Plan completed with a non-standard status." >> $GITHUB_STEP_SUMMARY
 
 
   # -------------------------------
@@ -238,27 +230,21 @@ jobs:
           name: tfplan
           path: .
 
-      # UPDATED: Capture apply output to file (like Trivy/Checkov) when applying from saved plan
       - name: Terraform Apply (from plan)
         if: ${{ needs.plan.outputs.has_changes == 'true' }}
-        run: |
-          terraform apply -input=false -auto-approve tfplan.bin | tee apply.output
+        run: terraform apply -input=false -auto-approve tfplan.bin | tee apply.output
 
-      # UPDATED: Capture apply output to file (like Trivy/Checkov) when forced
       - name: Terraform Apply (forced)
         if: ${{ inputs.force_apply && needs.plan.outputs.has_changes != 'true' }}
-        run: |
-          terraform apply -input=false -auto-approve -var-file="${{ env.TFVARS_PATH }}" | tee apply.output
+        run: terraform apply -input=false -auto-approve -var-file="${{ env.TFVARS_PATH }}" | tee apply.output
 
-      # NEW: Always upload the apply output artifact
       - name: Upload Apply Output
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: apply.output
-          path: ${{ env.WORKING_DIR }}/apply.output
+          path: apply.output
 
-      # NEW: Summary for Apply
       - name: Summarize Apply Results
         if: always()
         run: |
