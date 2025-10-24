@@ -37,10 +37,10 @@ resource "google_sql_database_instance" "replica" {
 
   settings {
     tier = var.db_tier
-    backup_configuration {
-      enabled             = true
-      binary_log_enabled  = true
-    }
+    # backup_configuration {
+    #   enabled             = true
+    #   binary_log_enabled  = true
+    # }
   }
 }
 
