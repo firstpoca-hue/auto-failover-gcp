@@ -64,3 +64,7 @@ variable "health_check_port" {
 variable "db_name_prefix" {
   
 }
+# variable "network_name" {
+#   description = "Name of the VPC network for Cloud SQL connectivity"
+#   type        = string
+# }
