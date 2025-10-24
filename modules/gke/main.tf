@@ -36,5 +36,6 @@ output "cluster_name" {
 }
 
 output "neg_self_link" {
-  value = var.enabled ? "/projects/${var.name}/regions/${var.region}/networkEndpointGroups/app-service-neg" : null
+  value = var.enabled ? "/projects/${var.project_id}/regions/${var.region}/networkEndpointGroups/app-service-neg" : null
+  description = "Self link for the app service NEG"
 }
