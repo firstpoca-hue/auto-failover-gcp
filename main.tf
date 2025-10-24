@@ -5,24 +5,24 @@ module "network" {
   secondary_region = var.secondary_region
 }
 
-# module "gke_primary" {
-#   source        = "./modules/gke"
-#   name          = "gke-primary"
-#   region        = var.primary_region
-#   region_secondary = var.secondary_region
-#   network_id    = module.network.vpc_id
-#   subnetwork_id = module.network.secondary_subnet_id
-# }
+module "gke_primary" {
+  source        = "./modules/gke"
+  name          = "gke-primary"
+  region        = var.primary_region
+  region_secondary = var.secondary_region
+  network_id    = module.network.vpc_id
+  subnetwork_id = module.network.secondary_subnet_id
+}
 
 
-# module "gke_secondary" {
-#   source        = "./modules/gke"
-#   name          = "secondary"
-#   region        = var.secondary_region
-#   network_id    = module.network.vpc_id
-#   subnetwork_id = module.network.secondary_subnet_id
-#   enabled       = var.deploy_secondary
-# }
+module "gke_secondary" {
+  source        = "./modules/gke"
+  name          = "secondary"
+  region        = var.secondary_region
+  network_id    = module.network.vpc_id
+  subnetwork_id = module.network.secondary_subnet_id
+  enabled       = var.deploy_secondary
+}
 # module "database" {
 #   source = "./modules/database"
 #   project_id = var.project_id
