@@ -15,7 +15,6 @@ resource "google_service_networking_connection" "private_vpc_connection" {
 
 resource "google_sql_database_instance" "primary" {
   name             = "app-db-primary"
-  project          = var.project_id
   region           = var.primary_region
   database_version = var.database_version
   deletion_protection = false
