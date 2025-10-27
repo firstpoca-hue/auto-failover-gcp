@@ -3,6 +3,8 @@ module "network" {
   name = "dr-net"
   primary_region = var.primary_region
   secondary_region = var.secondary_region
+  psa_range_name = var.psa_range_name
+  psa_prefix_length = var.psa_prefix_length
 }
 
 # --- PRIMARY GKE CLUSTER (always created)

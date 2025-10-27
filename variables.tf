@@ -55,6 +55,16 @@ variable "github_pat_secret" {
   default = "github-pat"
 }
 
+variable "psa_range_name" {
+  type = string
+  default = "servicenetworking-range"
+}
+
+variable "psa_prefix_length" {
+  type = number
+  default = 24
+}
+
 # variable "primary_neg" {
 #   description = "Primary backend NEG for the load balancer"
 # }
@@ -80,3 +90,6 @@ variable "db_name_prefix" {
 #   description = "Name of the VPC network for Cloud SQL connectivity"
 #   type        = string
 # }
+
+
+# NEW for PSA (Private Service Access)

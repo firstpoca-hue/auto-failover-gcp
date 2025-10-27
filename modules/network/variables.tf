@@ -10,12 +10,3 @@ variable "psa_prefix_length" {
   description = "Prefix length (e.g., 24 for /24) for the PSA reserved range"
   type        = number
 }
-
-variable "primary_cidr" {
-  description = "CIDR for primary subnet"
-  type        = string
-}
-variable "secondary_cidr" {
-  description = "CIDR for secondary subnet"
-  type        = string
-}
