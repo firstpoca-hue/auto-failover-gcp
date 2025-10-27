@@ -26,6 +26,25 @@ resource "google_compute_network_endpoint_group" "app_service_neg" {
   network_endpoint_type = "GCE_VM_IP_PORT"   # or SERVERLESS
 }
 
+resource "google_compute_global_address" "psa_range" {
+  name          = var.psa_range_name
+  purpose       = "VPC_PEERING"
+  address_type  = "INTERNAL"
+  prefix_length = var.psa_prefix_length
+  network       = google_compute_network.vpc.self_link
+}
+
+# NEW: Establish Private Service Access peering (required for Cloud SQL Private IP)
+resource "google_service_networking_connection" "private_vpc_connection" {
+  network                 = google_compute_network.vpc.self_link
+  service                 = "servicenetworking.googleapis.com"
+  reserved_peering_ranges = [google_compute_global_address.psa_range.name]
+
+  depends_on = [google_compute_global_address.psa_range]
+}
+
+
+
 output "vpc_id" {
   value = google_compute_network.vpc.id
 }

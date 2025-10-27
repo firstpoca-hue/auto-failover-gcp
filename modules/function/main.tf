@@ -17,5 +17,7 @@ resource "google_cloudfunctions_function" "failover_fn" {
 
 resource "google_secret_manager_secret" "github_pat" {
   secret_id = var.github_secret_name
-  replication { automatic = true }
+  replication {
+  auto = true 
+}
 }
