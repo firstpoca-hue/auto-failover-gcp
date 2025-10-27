@@ -11,11 +11,11 @@ resource "google_compute_ssl_certificate" "self_signed" {
   certificate = file("${path.module}/certs/certificate.crt")
 }
 
-# 🟩 Use HTTPS protocol since LB proxy is HTTPS
+# Backend service uses HTTP to communicate with pods
 resource "google_compute_backend_service" "backend" {
   name          = var.lb_name
-  protocol      = "HTTPS"                       # 🟩 changed from HTTP → HTTPS
-  port_name     = "https"                       # 🟩 changed
+  protocol      = "HTTP"
+  port_name     = "http"
   timeout_sec   = 30
   health_checks = [google_compute_health_check.default.self_link]
 
@@ -38,8 +38,8 @@ resource "google_compute_target_https_proxy" "proxy" {
   ssl_certificates = [google_compute_ssl_certificate.self_signed.id]
 }
 
-resource "google_compute_global_forwarding_rule" "fwd" {
-  name                  = "${var.name}-fwd"
+resource "google_compute_global_forwarding_rule" "https_fwd" {
+  name                  = "${var.name}-https-fwd"
   load_balancing_scheme = "EXTERNAL"
   target                = google_compute_target_https_proxy.proxy.id
   port_range            = "443"
