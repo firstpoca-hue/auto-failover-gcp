@@ -36,10 +36,6 @@ output "cluster_name" {
 }
 
 output "neg_self_link" {
-  value = var.enabled ? "projects/${var.project_id}/regions/${var.region}/networkEndpointGroups/k8s1-default-app-service-80-${random_id.neg_suffix.hex}" : null
+  value = var.enabled ? "projects/${var.project_id}/zones/${var.region}-a/networkEndpointGroups/app-service-neg" : null
   description = "Self link for the app service NEG"
-}
-
-resource "random_id" "neg_suffix" {
-  byte_length = 4
 }
