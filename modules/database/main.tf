@@ -1,3 +1,4 @@
+# Private IP allocation for Cloud SQL
 resource "google_compute_global_address" "private_ip_address" {
   name          = "private-ip-address"
   purpose       = "VPC_PEERING"
@@ -6,21 +7,23 @@ resource "google_compute_global_address" "private_ip_address" {
   network       = var.network
 }
 
+# Private service connection
 resource "google_service_networking_connection" "private_vpc_connection" {
   network                 = var.network
   service                 = "servicenetworking.googleapis.com"
   reserved_peering_ranges = [google_compute_global_address.private_ip_address.name]
 }
 
+# Random suffix for unique naming
 resource "random_id" "db_name_suffix" {
   byte_length = 4
 }
 
+# Primary database instance
 resource "google_sql_database_instance" "primary" {
-  project             = var.project_id
-  name                = "appdb-${random_id.db_name_suffix.hex}"
-  region              = var.primary_region
+  name                = "primary-db-${random_id.db_name_suffix.hex}"
   database_version    = var.database_version
+  region              = var.primary_region
   deletion_protection = false
 
   settings {
@@ -38,19 +41,15 @@ resource "google_sql_database_instance" "primary" {
     }
   }
 
-  replica_configuration {
-    failover_target = false
-  }
-
   depends_on = [google_service_networking_connection.private_vpc_connection]
 }
 
+# Cross-region read replica
 resource "google_sql_database_instance" "replica" {
   count                = var.enable_replica ? 1 : 0
-  project              = var.project_id
-  name                 = "appdb-replica-${random_id.db_name_suffix.hex}"
-  region               = var.secondary_region
+  name                 = "replica-db-${random_id.db_name_suffix.hex}"
   database_version     = var.database_version
+  region               = var.secondary_region
   deletion_protection  = false
   master_instance_name = google_sql_database_instance.primary.name
 
@@ -66,6 +65,7 @@ resource "google_sql_database_instance" "replica" {
   depends_on = [google_sql_database_instance.primary]
 }
 
+# Outputs
 output "primary_connection_name" {
   value = google_sql_database_instance.primary.connection_name
 }
