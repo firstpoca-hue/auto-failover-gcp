@@ -1,17 +1,17 @@
-resource "google_monitoring_alert_policy" "gke_down" {
-  display_name = "GKE Nodes Down"
+resource "google_monitoring_alert_policy" "app_down" {
+  display_name = "Application Down"
   combiner = "OR"
 
   conditions {
-    display_name = "GKE Node Down"
+    display_name = "Load Balancer Error Rate High"
     condition_threshold {
-      filter          = "metric.type=\"compute.googleapis.com/instance/up\" AND resource.type=\"gce_instance\""
-      comparison      = "COMPARISON_LT"
-      threshold_value = 1
-      duration        = "300s"
+      filter          = "metric.type=\"loadbalancing.googleapis.com/https/request_count\" AND resource.type=\"https_lb_rule\""
+      comparison      = "COMPARISON_GT"
+      threshold_value = 0
+      duration        = "60s"
       aggregations {
-        alignment_period   = "60s"
-        per_series_aligner = "ALIGN_MEAN"
+        alignment_period   = "300s"
+        per_series_aligner = "ALIGN_RATE"
       }
     }
   }
