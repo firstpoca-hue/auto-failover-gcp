@@ -22,6 +22,8 @@ resource "google_compute_backend_service" "backend" {
   backend {
     # 🟩 Expect zonal NEG self-link from GKE (global LBs need ZONAL NEGs)
     group = var.neg
+    balancing_mode = "RATE"
+    max_rate_per_endpoint = 100
   }
 }
 
