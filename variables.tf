@@ -180,10 +180,10 @@ variable "github_owner" {
   default = "your-org"
 }
 
-variable "github_repo" {
-  type = string
-  default = "your-repo"
-}
+# variable "github_repo" {
+#   type = string
+#   default = "your-repo"
+# }
 
 variable "github_event_type" {
   type = string
