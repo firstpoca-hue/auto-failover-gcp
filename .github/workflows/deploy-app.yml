@@ -1,0 +1,54 @@
+name: Deploy Application
+
+on:
+  push:
+    branches: [main]
+    paths: ['app/**']
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: hot-cold-drp
+  REGION: us-central1
+  CLUSTER_NAME: gke-primary-cluster
+  REPOSITORY: app-repo
+  IMAGE: web-app
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - id: auth
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+    
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+    
+    - name: Configure Docker
+      run: gcloud auth configure-docker us-central1-docker.pkg.dev
+    
+
+    
+    - name: Build and Push Image
+      run: |
+        cd app
+        docker build -t us-central1-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE:$GITHUB_SHA .
+        docker push us-central1-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE:$GITHUB_SHA
+        docker tag us-central1-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE:$GITHUB_SHA \
+                   us-central1-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE:latest
+        docker push us-central1-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE:latest
+    
+    - name: Get GKE Credentials
+      run: |
+        gcloud container clusters get-credentials $CLUSTER_NAME \
+          --region=$REGION --project=$PROJECT_ID
+    
+    - name: Deploy to GKE
+      run: |
+        kubectl apply -f k8s/app.yaml
+        kubectl apply -f k8s/monitoring.yaml
+        kubectl rollout restart deployment/web-app
+        kubectl rollout status deployment/web-app --timeout=300s

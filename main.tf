@@ -55,6 +55,12 @@ module "lb" {
     # primary backend NEG filled after k8s NEG exists; failover run will add secondary
 
 
+module "artifact_registry" {
+  source = "./modules/artifact-registry"
+  project_id = var.project_id
+  region = var.primary_region
+}
+
 module "monitoring" {
   source = "./modules/monitoring"
   project_id = var.project_id
