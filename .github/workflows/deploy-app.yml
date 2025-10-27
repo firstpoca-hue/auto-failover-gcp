@@ -57,3 +57,37 @@ jobs:
         kubectl apply -f k8s/monitoring.yaml
         kubectl rollout restart deployment/web-app
         kubectl rollout status deployment/web-app --timeout=300s
+    
+    - name: Get Service URLs
+      env:
+        USE_GKE_GCLOUD_AUTH_PLUGIN: True
+      run: |
+        echo "🚀 Deployment Complete! Access your services:"
+        echo "==========================================="
+        
+        # Get Load Balancer IP
+        LB_IP=$(gcloud compute forwarding-rules list --filter="name~'app-lb'" --format="value(IPAddress)" | head -1)
+        if [ ! -z "$LB_IP" ]; then
+          echo "📱 Application: https://$LB_IP"
+        else
+          echo "📱 Application: Load balancer IP not found"
+        fi
+        
+        # Get Grafana IP
+        GRAFANA_IP=$(kubectl get service grafana -n monitoring -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || echo "pending")
+        if [ "$GRAFANA_IP" != "pending" ] && [ ! -z "$GRAFANA_IP" ]; then
+          echo "📊 Grafana: http://$GRAFANA_IP:3000 (admin/admin123)"
+        else
+          echo "📊 Grafana: IP pending, check 'kubectl get svc grafana -n monitoring'"
+        fi
+        
+        # Get Prometheus IP
+        PROMETHEUS_IP=$(kubectl get service prometheus -n monitoring -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || echo "pending")
+        if [ "$PROMETHEUS_IP" != "pending" ] && [ ! -z "$PROMETHEUS_IP" ]; then
+          echo "📈 Prometheus: http://$PROMETHEUS_IP:9090"
+        else
+          echo "📈 Prometheus: IP pending, check 'kubectl get svc prometheus -n monitoring'"
+        fi
+        
+        echo "==========================================="
+        echo "Note: It may take 5-10 minutes for all services to be fully accessible"
