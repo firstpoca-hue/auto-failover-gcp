@@ -50,7 +50,7 @@ secondary_neg_zone = "asia-southeast1-a"
 ############################
 # Database (Cloud SQL Postgres)
 ############################
-db_name_prefix   = "DRP"
+name_prefix   = "DRP"
 database_version      = "MYSQL_8_0"
 db_tier          = "db-n1-standard-1"
 db_storage_gb    = 50
