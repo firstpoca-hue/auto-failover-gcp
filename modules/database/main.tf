@@ -13,7 +13,7 @@ resource "google_service_networking_connection" "private_vpc_connection" {
 }
 
 resource "google_sql_database_instance" "primary" {
-  name                = "appdbprimary${formatdate("YYYYMMDDHHMMSS", timestamp())}"
+  name                = "appdbprimary${formatdate("YYYYMMDDhhmmss", timestamp())}"
   region              = var.primary_region
   database_version    = var.database_version
   deletion_protection = false
@@ -41,7 +41,7 @@ resource "google_sql_database_instance" "primary" {
 
 resource "google_sql_database_instance" "replica" {
   count                = var.enable_replica ? 1 : 0
-  name                 = "appdbreplica${formatdate("YYYYMMDDHHMMSS", timestamp())}"
+  name                 = "appdbreplica${formatdate("YYYYMMDDhhmmss", timestamp())}"
   region               = var.secondary_region
   database_version     = var.database_version
   deletion_protection  = false
