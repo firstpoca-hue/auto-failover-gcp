@@ -43,6 +43,9 @@ resource "google_sql_database_instance" "primary" {
 
   depends_on = [google_service_networking_connection.private_vpc_connection]
 }
+resource "random_id" "db_name_suffix" {
+  byte_length = 4
+}
 
 resource "google_sql_database_instance" "replica" {
   count                = var.enable_replica ? 1 : 0
