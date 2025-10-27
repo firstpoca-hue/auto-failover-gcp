@@ -31,6 +31,7 @@ metadata:
   namespace: default
   annotations:
     cloud.google.com/neg: '{"ingress": true}'
+    cloud.google.com/load-balancer-type: "External"
 spec:
   selector:
     app: web-app
