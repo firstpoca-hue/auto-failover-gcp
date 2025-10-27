@@ -34,7 +34,7 @@ module "gke_secondary" {
 module "database" {
   source           = "./modules/database"
   project_id       = var.project_id
-  name_prefix      = var.db_name_prefix
+  name_prefix      = var.name_prefix
   primary_region   = var.primary_region
   secondary_region = var.secondary_region
   database_version = var.database_version
