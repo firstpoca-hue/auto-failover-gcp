@@ -12,12 +12,8 @@ resource "google_service_networking_connection" "private_vpc_connection" {
   reserved_peering_ranges = [google_compute_global_address.private_ip_address.name]
 }
 
-resource "random_id" "db_name_suffix" {
-  byte_length = 4
-}
-
 resource "google_sql_database_instance" "primary" {
-  name                = "app-db-primary-${random_id.db_name_suffix.hex}"
+  name                = "appdbprimary${formatdate("YYYYMMDDHHMMSS", timestamp())}"
   region              = var.primary_region
   database_version    = var.database_version
   deletion_protection = false
@@ -43,11 +39,9 @@ resource "google_sql_database_instance" "primary" {
   }
 }
 
-
-
 resource "google_sql_database_instance" "replica" {
   count                = var.enable_replica ? 1 : 0
-  name                 = "app-db-replica-${random_id.db_name_suffix.hex}"
+  name                 = "appdbreplica${formatdate("YYYYMMDDHHMMSS", timestamp())}"
   region               = var.secondary_region
   database_version     = var.database_version
   deletion_protection  = false
@@ -78,4 +72,3 @@ output "replica_connection_name" {
 output "replica_private_ip" {
   value = var.enable_replica ? google_sql_database_instance.replica[0].private_ip_address : null
 }
-
