@@ -12,12 +12,15 @@ resource "google_service_networking_connection" "private_vpc_connection" {
   reserved_peering_ranges = [google_compute_global_address.private_ip_address.name]
 }
 
+resource "random_id" "db_name_suffix" {
+  byte_length = 4
+}
+
 resource "google_sql_database_instance" "primary" {
-  name                = "appdbprimary${formatdate("YYYYMMDDhhmmss", timestamp())}"
+  name                = "appdb-${random_id.db_name_suffix.hex}"
   region              = var.primary_region
   database_version    = var.database_version
   deletion_protection = false
-  depends_on          = [google_service_networking_connection.private_vpc_connection]
 
   settings {
     tier              = var.db_tier
@@ -37,11 +40,13 @@ resource "google_sql_database_instance" "primary" {
   replica_configuration {
     failover_target = false
   }
+
+  depends_on = [google_service_networking_connection.private_vpc_connection]
 }
 
 resource "google_sql_database_instance" "replica" {
   count                = var.enable_replica ? 1 : 0
-  name                 = "appdbreplica${formatdate("YYYYMMDDhhmmss", timestamp())}"
+  name                 = "appdb-replica-${random_id.db_name_suffix.hex}"
   region               = var.secondary_region
   database_version     = var.database_version
   deletion_protection  = false
@@ -55,6 +60,8 @@ resource "google_sql_database_instance" "replica" {
       private_network = var.network
     }
   }
+
+  depends_on = [google_sql_database_instance.primary]
 }
 
 output "primary_connection_name" {
