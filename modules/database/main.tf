@@ -18,7 +18,6 @@ resource "random_id" "db_name_suffix" {
 }
 
 resource "google_sql_database_instance" "primary" {
-  project          = var.project_id  # ✅ Add this
   name             = "app-db-primary-${random_id.db_name_suffix.hex}"
   region           = var.primary_region
   database_version = var.database_version
