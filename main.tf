@@ -40,7 +40,8 @@ module "database" {
   database_version = var.database_version
   network          = module.network.vpc_id
   enable_replica   = true
-  db_tier = var.db_tier
+  db_tier          = var.db_tier
+  psa_range_name   = var.psa_range_name
 }
 
 module "lb" {
