@@ -41,17 +41,19 @@ module "gke_secondary" {
 #   db_tier = var.db_tier
 # }
 
-module "lb" {
-  source = "./modules/lb"
-  name    = "app-lb"
-  backends = []
-
-  lb_name            = var.lb_name           # ✅ fixed name
-  neg                = module.gke_primary.neg_self_link  # ✅ pass NEG
-  health_check_path  = var.health_check_path # ✅ fixed name
-  health_check_port  = var.health_check_port # ✅ fixed name
-  depends_on = [module.gke_primary]
-}
+# Load balancer should be created after NEG is available from Kubernetes service
+# For now, comment out until NEG is created by Kubernetes service deployment
+# module "lb" {
+#   source = "./modules/lb"
+#   name    = "app-lb"
+#   backends = []
+#
+#   lb_name            = var.lb_name
+#   neg                = "projects/${var.project_id}/regions/${var.primary_region}/networkEndpointGroups/k8s1-default-app-service-80-xxxxxxxx"
+#   health_check_path  = var.health_check_path
+#   health_check_port  = var.health_check_port
+#   depends_on = [module.gke_primary]
+# }
     # primary backend NEG filled after k8s NEG exists; failover run will add secondary
 
 

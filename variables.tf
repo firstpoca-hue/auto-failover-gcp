@@ -34,14 +34,25 @@ variable "alert_email"{
   type = string
   default = "firstpoca@gmail.com"
 }
-variable"database_version"{
+variable "database_version" {
+  type = string
+  default = "MYSQL_8_0"
+}
 
-}
 variable "db_tier" {
-  
+  type = string
+  default = "db-n1-standard-1"
 }
+
 variable "lb_name" {
+  type = string
   default = "app-lb-backend"
+}
+
+variable "github_pat_secret" {
+  description = "Name of the secret in Secret Manager containing GitHub PAT"
+  type = string
+  default = "github-pat"
 }
 
 # variable "primary_neg" {
@@ -62,7 +73,8 @@ variable "health_check_port" {
 # }
 
 variable "db_name_prefix" {
-  
+  type = string
+  default = "DRP"
 }
 # variable "network_name" {
 #   description = "Name of the VPC network for Cloud SQL connectivity"
