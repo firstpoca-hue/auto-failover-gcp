@@ -31,7 +31,7 @@ metadata:
   namespace: default
   annotations:
     cloud.google.com/neg: '{"ingress": true}'
-    cloud.google.com/load-balancer-type: "External"
+    cloud.google.com/backend-config: '{"default": "app-backend-config"}'
 spec:
   selector:
     app: web-app
@@ -40,3 +40,18 @@ spec:
     targetPort: 80
     name: http
   type: ClusterIP
+---
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: app-backend-config
+  namespace: default
+spec:
+  healthCheck:
+    checkIntervalSec: 10
+    timeoutSec: 5
+    healthyThreshold: 1
+    unhealthyThreshold: 3
+    type: HTTP
+    requestPath: /
+    port: 80
