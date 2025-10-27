@@ -31,17 +31,17 @@ module "gke_secondary" {
   enabled       = var.deploy_secondary               # 🔹 Passed to module for internal control
 }
 
-# module "database" {
-#   source           = "./modules/database"
-#   project_id       = var.project_id
-#   name_prefix      = var.db_name_prefix
-#   primary_region   = var.primary_region
-#   secondary_region = var.secondary_region
-#   database_version = var.database_version
-#   network          = module.network.vpc_id
-#   enable_replica   = true
-#   db_tier = var.db_tier
-# }
+module "database" {
+  source           = "./modules/database"
+  project_id       = var.project_id
+  name_prefix      = var.db_name_prefix
+  primary_region   = var.primary_region
+  secondary_region = var.secondary_region
+  database_version = var.database_version
+  network          = module.network.vpc_id
+  enable_replica   = true
+  db_tier = var.db_tier
+}
 
 module "lb" {
   source = "./modules/lb"
