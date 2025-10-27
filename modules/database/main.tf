@@ -17,6 +17,7 @@ resource "random_id" "db_name_suffix" {
 }
 
 resource "google_sql_database_instance" "primary" {
+  project             = var.project_id
   name                = "appdb-${random_id.db_name_suffix.hex}"
   region              = var.primary_region
   database_version    = var.database_version
@@ -43,8 +44,10 @@ resource "google_sql_database_instance" "primary" {
 
   depends_on = [google_service_networking_connection.private_vpc_connection]
 }
+
 resource "google_sql_database_instance" "replica" {
   count                = var.enable_replica ? 1 : 0
+  project              = var.project_id
   name                 = "appdb-replica-${random_id.db_name_suffix.hex}"
   region               = var.secondary_region
   database_version     = var.database_version
