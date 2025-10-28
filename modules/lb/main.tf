@@ -18,7 +18,7 @@ resource "google_compute_backend_service" "backend" {
   port_name     = "http"
   timeout_sec   = 30
   health_checks = [google_compute_health_check.default.self_link]
-  load_balancing_scheme = "EXTERNAL_MANAGED"
+  load_balancing_scheme = "EXTERNAL"
   enable_cdn    = true
 
   cdn_policy {
