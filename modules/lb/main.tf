@@ -1,5 +1,10 @@
 # 🟩 modules/lb/main.tf
 
+data "google_compute_region_network_endpoint_group" "app_service_neg" {
+  name   = "app-service-neg"        # "app-service-neg"
+  region = var.primary_region
+}
+
 resource "google_compute_global_address" "lb_ip" {
   name = "${var.name}-ip"
 }
@@ -38,7 +43,7 @@ resource "google_compute_backend_service" "backend" {
 
   backend {
     # 🟩 Expect zonal NEG self-link from GKE (global LBs need ZONAL NEGs)
-    group = var.neg
+    group = data.google_compute_region_network_endpoint_group.app_service_neg.self_link
     balancing_mode = "RATE"
     max_rate_per_endpoint = 100
   }

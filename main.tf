@@ -53,6 +53,7 @@ module "lb" {
   neg                = module.network.neg            # 🔹 Get NEG self-link from network module
   health_check_path  = var.health_check_path
   health_check_port  = var.health_check_port
+  primary_region        = var.primary_region
   depends_on = [module.gke_primary]
 }
     # primary backend NEG filled after k8s NEG exists; failover run will add secondary
