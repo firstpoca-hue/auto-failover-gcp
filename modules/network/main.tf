@@ -60,3 +60,7 @@ output "primary_subnet_id" {
 output "secondary_subnet_id" {
   value = google_compute_subnetwork.secondary.id
 }
+
+output "neg" {
+  value = google_compute_network_endpoint_group.app_service_neg.self_link
+}

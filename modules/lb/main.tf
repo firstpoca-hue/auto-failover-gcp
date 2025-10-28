@@ -18,6 +18,7 @@ resource "google_compute_backend_service" "backend" {
   port_name     = "http"
   timeout_sec   = 30
   health_checks = [google_compute_health_check.default.self_link]
+  load_balancing_scheme = "EXTERNAL_MANAGED"
   enable_cdn    = true
 
   cdn_policy {
@@ -64,8 +65,10 @@ resource "google_compute_global_forwarding_rule" "https_fwd" {
 
 resource "google_compute_health_check" "default" {
   name               = "app-hc"
-  check_interval_sec = 5
+  check_interval_sec = 10
   timeout_sec        = 5
+  healthy_threshold  = 2
+  unhealthy_threshold = 3
 
   http_health_check {
     port         = var.health_check_port
