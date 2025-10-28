@@ -15,9 +15,9 @@ resource "google_compute_ssl_certificate" "self_signed" {
 resource "google_compute_backend_service" "backend" {
   name          = var.lb_name
   protocol      = "HTTP"
-  port_name     = "http"
+  #port_name     = "http"
   timeout_sec   = 30
-  health_checks = [google_compute_health_check.default.self_link]
+  #health_checks = [google_compute_health_check.default.self_link]
   load_balancing_scheme = "EXTERNAL_MANAGED"
   enable_cdn    = true
 
