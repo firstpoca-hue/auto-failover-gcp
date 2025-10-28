@@ -14,8 +14,8 @@ permissions:
 
 env:
   TF_IN_AUTOMATION: "true"
-  WORKING_DIR: root
-  TFVARS_PATH: ../env/dev/terraform.tfvars
+  WORKING_DIR: .        # ✅ Changed from 'root' to current directory
+  TFVARS_PATH: "terraform.tfvars"
   EXPECTED_PROJECT_ID: hot-cold-drp
 
 jobs:
@@ -37,6 +37,9 @@ jobs:
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -96,14 +99,29 @@ jobs:
             container.googleapis.com \
             iam.googleapis.com \
             monitoring.googleapis.com \
+            sqladmin.googleapis.com \
+            servicenetworking.googleapis.com \
+            artifactregistry.googleapis.com \
             --project=${{ env.EXPECTED_PROJECT_ID }}
 
-      - name: Terraform Destroy
-        run: terraform destroy -var-file="${{ env.TFVARS_PATH }}" -auto-approve
+      - name: Terraform Plan Destroy
+        run: terraform plan -destroy -var-file="${{ env.TFVARS_PATH }}" -out=destroy.tfplan
 
-      - name: Disable compute.googleapis.com (and dependent services)
+      - name: Terraform Destroy
+        run: terraform apply destroy.tfplan
+
+      - name: Cleanup Resources (if destroy fails)
+        if: failure()
         run: |
-          gcloud services disable compute.googleapis.com \
-            --project=${{ env.EXPECTED_PROJECT_ID }} \
-            --force \
-            --disable-dependent-services
+          echo "Terraform destroy failed. Manual cleanup may be required."
+          echo "Check the following resources in project ${{ env.EXPECTED_PROJECT_ID }}:"
+          echo "- GKE clusters"
+          echo "- Load balancers"
+          echo "- Cloud SQL instances"
+          echo "- VPC networks"
+          
+      - name: Destroy Complete
+        if: success()
+        run: |
+          echo "Infrastructure successfully destroyed in project ${{ env.EXPECTED_PROJECT_ID }}"
+          echo "APIs remain enabled for future deployments"
