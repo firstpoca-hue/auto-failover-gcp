@@ -37,7 +37,7 @@ resource "google_sql_database_instance" "primary" {
 
     backup_configuration {
       enabled            = false
-      binary_log_enabled = true
+      binary_log_enabled = false
     }
   }
 
