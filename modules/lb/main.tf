@@ -18,6 +18,22 @@ resource "google_compute_backend_service" "backend" {
   port_name     = "http"
   timeout_sec   = 30
   health_checks = [google_compute_health_check.default.self_link]
+  enable_cdn    = true
+
+  cdn_policy {
+    cache_mode                   = "CACHE_ALL_STATIC"
+    default_ttl                  = 300
+    max_ttl                      = 600
+    client_ttl                   = 600
+    negative_caching             = false
+    serve_while_stale            = 600
+    
+    cache_key_policy {
+      include_host           = true
+      include_protocol       = true
+      include_query_string   = false
+    }
+  }
 
   backend {
     # 🟩 Expect zonal NEG self-link from GKE (global LBs need ZONAL NEGs)
