@@ -24,7 +24,7 @@ data "google_compute_zones" "available" {
 resource "google_compute_network_endpoint_group" "app_service_neg" {
   for_each = toset(data.google_compute_zones.available.names)
 
-  name                  = "app-service-neg"
+  name                  = "app-service-neg-${each.value}"
   network               = google_compute_network.vpc.id     # pass from variables.tf or main.tf
   subnetwork            = google_compute_subnetwork.primary.id 
   zone                  = each.value  # pass from variables.tf or main.tf
