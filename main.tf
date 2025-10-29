@@ -54,6 +54,7 @@ module "lb" {
   health_check_path  = var.health_check_path
   health_check_port  = var.health_check_port
   depends_on = [module.gke_primary]
+  region = var.primary_region
 }
     # primary backend NEG filled after k8s NEG exists; failover run will add secondary
 

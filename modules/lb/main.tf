@@ -11,13 +11,22 @@ resource "google_compute_ssl_certificate" "self_signed" {
   certificate = file("${path.module}/certs/certificate.crt")
 }
 
+data "google_compute_zones" "available" {
+  region = var.region
+}
+
+data "google_compute_network_endpoint_group" "app_negs" {
+  for_each = toset(data.google_compute_zones.available.names)
+}
+
 # Backend service uses HTTP to communicate with pods
 resource "google_compute_backend_service" "backend" {
   name          = var.lb_name
   protocol      = "HTTP"
-  #port_name     = "http"
+  port_name     = "http"
   timeout_sec   = 30
-  #health_checks = [google_compute_health_check.default.self_link]
+  locality_lb_policy    = "ROUND_ROBIN"
+  health_checks = [google_compute_health_check.default.self_link]
   load_balancing_scheme = "EXTERNAL_MANAGED"
   enable_cdn    = true
 
@@ -36,12 +45,21 @@ resource "google_compute_backend_service" "backend" {
     }
   }
 
-  backend {
-    # 🟩 Expect zonal NEG self-link from GKE (global LBs need ZONAL NEGs)
-    group = var.neg
-    balancing_mode = "RATE"
-    max_rate_per_endpoint = 100
+  # backend {
+  #   # 🟩 Expect zonal NEG self-link from GKE (global LBs need ZONAL NEGs)
+  #   group = var.neg
+  #   balancing_mode = "RATE"
+  #   max_rate_per_endpoint = 100
+  # }
+  dynamic "backend" {
+    for_each = data.google_compute_network_endpoint_group.app_negs
+    content {
+      group = backend.value.id
+      balancing_mode = "RATE"
+      max_rate_per_endpoint = 100
+    }
   }
+
 }
 
 resource "google_compute_url_map" "urlmap" {
