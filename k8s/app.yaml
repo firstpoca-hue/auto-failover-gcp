@@ -31,7 +31,7 @@ metadata:
   namespace: default
   annotations:
     cloud.google.com/neg: '{"ingress": true}'
-    cloud.google.com/backend-config: '{"ports": {"80":"hello-cdn-config"}}'
+    cloud.google.com/backend-config: '{"ports": {"80":"app-cdn-config"}}'
 spec:
   selector:
     app: web-app
@@ -79,3 +79,20 @@ spec:
       includeHost: true           # Cache separately for each Host header
       includeProtocol: true       # Cache separately for HTTP vs HTTPS
       includeQueryString: false   # Set to 'true' if query parameters affect content
+  healthCheck:
+    type: HTTP
+    requestPath: /
+    port: 80              # Service port to check
+
+# ---
+# apiVersion: cloud.google.com/v1
+# kind: BackendConfig
+# metadata:
+#   name: app-backendconfig # Name of your BackendConfig
+#   namespace: default       # Must be the same namespace as the Service
+# spec:
+#   healthCheck:
+#     type: HTTP
+#     requestPath: /
+#     port: 80              # Service port to check
+#     # Add other settings like timeoutSec, checkIntervalSec if needed
