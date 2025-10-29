@@ -51,14 +51,14 @@ resource "google_compute_backend_service" "backend" {
   #   balancing_mode = "RATE"
   #   max_rate_per_endpoint = 100
   # }
-  dynamic "backend" {
-    for_each = var.neg
-    content {
-      group = backend.value
-      balancing_mode = "UTILIZATION"
-      max_rate_per_endpoint = 0.8
-    }
-  }
+  # dynamic "backend" {
+  #   for_each = var.neg
+  #   content {
+  #     group = backend.value
+  #     balancing_mode = "UTILIZATION"
+  #     max_rate_per_endpoint = 0.8
+  #   }
+  # }
 
 }
 

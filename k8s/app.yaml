@@ -31,6 +31,7 @@ metadata:
   namespace: default
   annotations:
     cloud.google.com/neg: '{"ingress": true}'
+    cloud.google.com/backend-config: '{"ports": {"80":"hello-cdn-config"}}'
 spec:
   selector:
     app: web-app
@@ -38,4 +39,43 @@ spec:
   - port: 80
     targetPort: 80
     name: http
-  type: LoadBalancer
+  type: NodePort
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: default
+  name: app-ingress
+  annotations:
+    kubernetes.io/ingress.class: gce
+    kubernetes.io/ingress.allow-http: "true" 
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: app-service
+            port:
+              number: 80
+
+---
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  namespace: default
+  name: app-cdn-config
+spec:
+  cdn:
+    enabled: true
+    cacheMode: CACHE_ALL_STATIC_CONTENT # Use CACHE_ALL_STATIC_CONTENT or FORCE_CACHE_ALL
+    clientTtl: 300                      # Browser cache TTL (5 minutes)
+    defaultTtl: 300                    # Default CDN cache TTL (5 minutes)
+    maxTtl: 600                     # Maximum CDN cache TTL (10 minutes)
+    cachePolicy:
+      includeHost: true           # Cache separately for each Host header
+      includeProtocol: true       # Cache separately for HTTP vs HTTPS
+      includeQueryString: false   # Set to 'true' if query parameters affect content
