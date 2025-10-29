@@ -1,0 +1,127 @@
+name: Terraform-Destroy-Infra
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type: DESTROY hot-cold-drp'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  TF_IN_AUTOMATION: "true"
+  WORKING_DIR: .        # ✅ Changed from 'root' to current directory
+  TFVARS_PATH: "terraform.tfvars"
+  EXPECTED_PROJECT_ID: hot-cold-drp
+
+jobs:
+  destroy:
+    runs-on: ubuntu-latest
+    environment: prod  # manual approval gate
+    concurrency:
+      group: tf-prod
+      cancel-in-progress: false
+    defaults:
+      run:
+        working-directory: ${{ env.WORKING_DIR }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Google Auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init (reconfigure)
+        run: terraform init -reconfigure
+
+      - name: Read project_id from tfvars
+        id: read
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! -f "${{ env.TFVARS_PATH }}" ]]; then
+            echo "tfvars file not found at ${{ env.TFVARS_PATH }}"
+            exit 1
+          fi
+          line="$(grep -E '^[[:space:]]*project_id[[:space:]]*=' "${{ env.TFVARS_PATH }}" || true)"
+          if [[ -z "$line" ]]; then
+            echo "project_id not found in ${{ env.TFVARS_PATH }}"
+            exit 1
+          fi
+          PROJECT_ID="$(sed -E 's/.*=\s*"([^"]+)".*/\1/' <<<"$line" | xargs)"
+          if [[ -z "$PROJECT_ID" ]]; then
+            echo "project_id parsed empty from ${{ env.TFVARS_PATH }}"
+            exit 1
+          fi
+          echo "project_id=$PROJECT_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Sanity check tfvars project_id is expected
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ steps.read.outputs.project_id }}" != "${{ env.EXPECTED_PROJECT_ID }}" ]]; then
+            echo "tfvars project_id [${{ steps.read.outputs.project_id }}] != expected [${{ env.EXPECTED_PROJECT_ID }}]. Refusing to destroy."
+            exit 1
+          fi
+          echo "tfvars project_id matches expected: ${{ env.EXPECTED_PROJECT_ID }}"
+
+      - name: Verify confirmation matches "DESTROY <project_id>"
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${{ github.event.inputs.confirm }}"
+          WANT="DESTROY ${{ env.EXPECTED_PROJECT_ID }}"
+          GOT="$(echo "${{ github.event.inputs.confirm }}" | xargs)"
+          if [[ "$GOT" != "$WANT" ]]; then
+            echo "Expected confirmation: [$WANT], got: [${GOT:-<empty>}]. Refusing to destroy."
+            exit 1
+          fi
+          echo "Destroy confirmation accepted for ${{ env.EXPECTED_PROJECT_ID }}"
+
+      - name: Enable Required APIs
+        run: |
+          gcloud services enable \
+            cloudresourcemanager.googleapis.com \
+            compute.googleapis.com \
+            container.googleapis.com \
+            iam.googleapis.com \
+            monitoring.googleapis.com \
+            sqladmin.googleapis.com \
+            servicenetworking.googleapis.com \
+            artifactregistry.googleapis.com \
+            --project=${{ env.EXPECTED_PROJECT_ID }}
+
+      - name: Terraform Plan Destroy
+        run: terraform plan -destroy -var-file="${{ env.TFVARS_PATH }}" -out=destroy.tfplan
+
+      - name: Terraform Destroy
+        run: terraform apply destroy.tfplan
+
+      - name: Cleanup Resources (if destroy fails)
+        if: failure()
+        run: |
+          echo "Terraform destroy failed. Manual cleanup may be required."
+          echo "Check the following resources in project ${{ env.EXPECTED_PROJECT_ID }}:"
+          echo "- GKE clusters"
+          echo "- Load balancers"
+          echo "- Cloud SQL instances"
+          echo "- VPC networks"
+          
+      - name: Destroy Complete
+        if: success()
+        run: |
+          echo "Infrastructure successfully destroyed in project ${{ env.EXPECTED_PROJECT_ID }}"
+          echo "APIs remain enabled for future deployments"

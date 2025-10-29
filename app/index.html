@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GCP DR Demo</title>
+    <style>
+        body { font-family: Arial; margin: 50px; background: #f0f0f0; }
+        .container { background: white; padding: 30px; border-radius: 10px; }
+        h1 { color: #4285f4; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Hot-Cold DR Application</h1>
+        <p>Running on GKE Primary Cluster</p>
+        <p>Timestamp: <span id="time"></span></p>
+        <p>Version: 1.0</p>
+    </div>
+    <script>
+        document.getElementById('time').innerHTML = new Date().toISOString();
+    </script>
+</body>
+</html>
