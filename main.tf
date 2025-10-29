@@ -50,7 +50,7 @@ module "lb" {
   backends = []
 
   lb_name            = var.lb_name
-  neg                = module.network.neg            # 🔹 Get NEG self-link from network module
+  neg                = module.gke_primary.neg_self_link
   health_check_path  = var.health_check_path
   health_check_port  = var.health_check_port
   depends_on = [module.gke_primary]
