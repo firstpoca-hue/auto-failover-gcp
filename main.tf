@@ -44,18 +44,18 @@ module "database" {
   psa_range_name   = var.psa_range_name
 }
 
-# module "lb" {
-#   source = "./modules/lb"
-#   name    = "app-lb"
-#   backends = []
+module "lb" {
+  source = "./modules/lb"
+  name    = "app-lb"
+  backends = []
 
-#   lb_name            = var.lb_name
-#   #neg                = module.network.neg_self_links           # 🔹 Get NEG self-link from network module
-#   health_check_path  = var.health_check_path
-#   health_check_port  = var.health_check_port
-#   depends_on = [module.gke_primary]
-#   region = var.primary_region
-# }
+  lb_name            = var.lb_name
+  #neg                = module.network.neg_self_links           # 🔹 Get NEG self-link from network module
+  health_check_path  = var.health_check_path
+  health_check_port  = var.health_check_port
+  depends_on = [module.gke_primary]
+  region = var.primary_region
+}
     # primary backend NEG filled after k8s NEG exists; failover run will add secondary
 
 
