@@ -15,10 +15,9 @@ resource "google_compute_ssl_certificate" "self_signed" {
 resource "google_compute_backend_service" "backend" {
   name          = var.lb_name
   protocol      = "HTTP"
-  #port_name     = "http"
+  port_name     = "http"
   timeout_sec   = 30
-  #health_checks = [google_compute_health_check.default.self_link]
-  load_balancing_scheme = "EXTERNAL_MANAGED"
+  health_checks = [google_compute_health_check.default.self_link]
   enable_cdn    = true
 
   cdn_policy {
@@ -57,7 +56,7 @@ resource "google_compute_target_https_proxy" "proxy" {
 
 resource "google_compute_global_forwarding_rule" "https_fwd" {
   name                  = "${var.name}-https-fwd"
-  load_balancing_scheme = "EXTERNAL_MANAGED"
+  load_balancing_scheme = "EXTERNAL"
   target                = google_compute_target_https_proxy.proxy.id
   port_range            = "443"
   ip_address            = google_compute_global_address.lb_ip.address
@@ -65,10 +64,8 @@ resource "google_compute_global_forwarding_rule" "https_fwd" {
 
 resource "google_compute_health_check" "default" {
   name               = "app-hc"
-  check_interval_sec = 10
+  check_interval_sec = 5
   timeout_sec        = 5
-  healthy_threshold  = 2
-  unhealthy_threshold = 3
 
   http_health_check {
     port         = var.health_check_port
