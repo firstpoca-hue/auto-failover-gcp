@@ -17,14 +17,13 @@ resource "google_compute_subnetwork" "secondary" {
   network = google_compute_network.vpc.id
 }
 
-resource "google_compute_region_network_endpoint_group" "app_service_neg" {
+resource "google_compute_network_endpoint_group" "app_service_neg" {
   name                  = "app-service-neg"
-  region                = var.primary_region
   network               = google_compute_network.vpc.id     # pass from variables.tf or main.tf
   subnetwork            = google_compute_subnetwork.primary.id 
-  # zone                  = "us-central1-a"  # pass from variables.tf or main.tf
-  #default_port          = 80
-  network_endpoint_type = "GCE_VM_IP_PORTMAP"   # or SERVERLESS
+  zone                  = "us-central1-a"  # pass from variables.tf or main.tf
+  default_port          = 80
+  network_endpoint_type = "GCE_VM_IP_PORT"   # or SERVERLESS
 }
 
 resource "google_compute_global_address" "psa_range" {
@@ -60,8 +59,4 @@ output "primary_subnet_id" {
 
 output "secondary_subnet_id" {
   value = google_compute_subnetwork.secondary.id
-}
-
-output "neg" {
-  value = google_compute_region_network_endpoint_group.app_service_neg.self_link
 }
