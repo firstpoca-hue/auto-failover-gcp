@@ -74,3 +74,10 @@ output "secondary_subnet_id" {
 # output "neg" {
 #   value = google_compute_network_endpoint_group.app_service_neg[each.Key].self_link
 # }
+
+# output "neg_self_links" {
+#   value = {
+#     for zone in data.google_compute_zones.available.names :
+#     zone => google_compute_network_endpoint_group.app_service_neg[zone].self_link
+#   }
+# }

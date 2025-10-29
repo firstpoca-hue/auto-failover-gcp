@@ -54,7 +54,7 @@ resource "google_compute_backend_service" "backend" {
   dynamic "backend" {
     for_each = data.google_compute_network_endpoint_group.app_negs
     content {
-      group = backend.value.id
+      group = backend.value.self_link
       balancing_mode = "RATE"
       max_rate_per_endpoint = 100
     }
