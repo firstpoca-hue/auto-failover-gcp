@@ -84,3 +84,7 @@ output "secondary_subnet_id" {
 output "psa_connection_id" {
   value = google_service_networking_connection.private_vpc_connection.id
 }
+
+# output "psa_connection_name" {
+#   value = google_service_networking_connection.private_vpc_connection.id
+# }

@@ -43,6 +43,7 @@ module "database" {
   db_tier          = var.db_tier
   psa_range_name   = var.psa_range_name
   psa_connection_id = module.network.psa_connection_id
+  
 }
 
 # module "lb" {

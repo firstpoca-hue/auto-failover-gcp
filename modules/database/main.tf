@@ -25,6 +25,7 @@ resource "google_sql_database_instance" "primary" {
   database_version    = var.database_version
   region              = var.primary_region
   deletion_protection = false
+  depends_on = [local.depend_on_psa]
 
   settings {
     tier              = var.db_tier
@@ -41,11 +42,15 @@ resource "google_sql_database_instance" "primary" {
     }
   }
 
-   depends_on = [/* ensure PSA exists before DB */]
+  #  depends_on = [/* ensure PSA exists before DB */]
 }
 
 # For explicit ordering, add:
-locals { _psa_dep = var.psa_connection_id }  # creates an implicit dependency edge
+# locals { _psa_dep = var.psa_connection_id } 
+locals {
+  depend_on_psa = var.psa_connection_id
+}
+ # creates an implicit dependency edge
 
 # Cross-region read replica
 resource "google_sql_database_instance" "replica" {
@@ -55,6 +60,7 @@ resource "google_sql_database_instance" "replica" {
   region               = var.secondary_region
   deletion_protection  = false
   master_instance_name = google_sql_database_instance.primary.name
+
 
   settings {
     tier = var.db_tier
