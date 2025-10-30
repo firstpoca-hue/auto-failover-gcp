@@ -26,6 +26,11 @@ jobs:
       with:
         install_components: 'gke-gcloud-auth-plugin'
     
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.5.0
+    
     - name: Deploy Secondary Infrastructure
       env:
         GH_PAT: ${{ secrets.GH_PAT }}
