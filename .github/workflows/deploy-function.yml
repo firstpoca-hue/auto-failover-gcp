@@ -1,0 +1,37 @@
+name: Deploy Cloud Function
+
+on:
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: hot-cold-drp
+  FUNCTION_NAME: failover-trigger
+  REGION: us-central1
+
+jobs:
+  deploy-function:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - id: auth
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+    
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+    
+    - name: Deploy Cloud Function
+      env:
+        GH_PAT: ${{ secrets.GH_PAT }}
+      run: |
+        gcloud functions deploy $FUNCTION_NAME \
+          --runtime python39 \
+          --trigger-topic monitoring-alerts \
+          --source cloud_function/ \
+          --entry-point trigger_failover \
+          --set-env-vars GITHUB_REPO="${{ github.repository }}" \
+          --set-env-vars GH_PAT="$GH_PAT" \
+          --region=$REGION \
+          --project=$PROJECT_ID
