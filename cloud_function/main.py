@@ -20,7 +20,7 @@ def trigger_failover(request):
     }
     data = {
         "event_type": "failover_trigger",
-        "client_payload": {"reason":"monitoring", "payload": payload}
+        "client_payload": {"reason":"monitoring", "payload": str(payload)}
     }
     r = requests.post(url, headers=headers, json=data)
     print("GitHub response", r.status_code, r.text)
