@@ -38,10 +38,11 @@ module "database" {
   primary_region   = var.primary_region
   secondary_region = var.secondary_region
   database_version = var.database_version
-  network          = module.network.vpc_id
+  network          = module.network.vpc_self_link
   enable_replica   = true
   db_tier          = var.db_tier
   psa_range_name   = var.psa_range_name
+  psa_connection_id = module.network.psa_connection_id
 }
 
 # module "lb" {

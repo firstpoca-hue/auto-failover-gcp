@@ -20,3 +20,13 @@ variable "psa_range_name" {
   type = string
   default = "servicenetworking-range"
 }
+
+variable "network" {
+  description = "VPC self_link"
+  type        = string
+}
+
+variable "psa_connection_id" {
+  description = "PSA connection id from network module"
+  type        = string
+}

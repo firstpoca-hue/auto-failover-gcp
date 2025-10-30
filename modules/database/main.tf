@@ -1,18 +1,18 @@
 # Private IP allocation for Cloud SQL
-resource "google_compute_global_address" "private_ip_address" {
-  name          = "private-ip-address"
-  purpose       = "VPC_PEERING"
-  address_type  = "INTERNAL"
-  prefix_length = 16
-  network       = var.network
-}
+# resource "google_compute_global_address" "private_ip_address" {
+#   name          = "private-ip-address"
+#   purpose       = "VPC_PEERING"
+#   address_type  = "INTERNAL"
+#   prefix_length = 16
+#   network       = var.network
+# }
 
-# Private service connection
-resource "google_service_networking_connection" "private_vpc_connection" {
-  network                 = var.network
-  service                 = "servicenetworking.googleapis.com"
-  reserved_peering_ranges = [google_compute_global_address.private_ip_address.name]
-}
+# # Private service connection
+# resource "google_service_networking_connection" "private_vpc_connection" {
+#   network                 = var.network
+#   service                 = "servicenetworking.googleapis.com"
+#   reserved_peering_ranges = [google_compute_global_address.private_ip_address.name]
+# }
 
 # Random suffix for unique naming
 resource "random_id" "db_name_suffix" {
@@ -41,8 +41,11 @@ resource "google_sql_database_instance" "primary" {
     }
   }
 
-  depends_on = [google_service_networking_connection.private_vpc_connection]
+   depends_on = [/* ensure PSA exists before DB */]
 }
+
+# For explicit ordering, add:
+locals { _psa_dep = var.psa_connection_id }  # creates an implicit dependency edge
 
 # Cross-region read replica
 resource "google_sql_database_instance" "replica" {

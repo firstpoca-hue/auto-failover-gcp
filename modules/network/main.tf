@@ -45,17 +45,12 @@ resource "google_compute_global_address" "psa_range" {
 }
 
 # NEW: Establish Private Service Access peering (required for Cloud SQL Private IP)
-# resource "google_service_networking_connection" "private_vpc_connection" {
-#   network                 = google_compute_network.vpc.self_link
-#   service                 = "servicenetworking.googleapis.com"
-#   reserved_peering_ranges = [google_compute_global_address.psa_range.name]
+resource "google_service_networking_connection" "private_vpc_connection" {
+  network                 = google_compute_network.vpc.self_link
+  service                 = "servicenetworking.googleapis.com"
+  reserved_peering_ranges = [google_compute_global_address.psa_range.name]
   
-#   lifecycle {
-#     ignore_changes = [reserved_peering_ranges]
-#   }
-
-#   depends_on = [google_compute_global_address.psa_range]
-# }
+}
 
 
 
@@ -85,3 +80,7 @@ output "secondary_subnet_id" {
 #     zone => google_compute_network_endpoint_group.app_service_neg[zone].self_link
 #   }
 # }
+
+output "psa_connection_id" {
+  value = google_service_networking_connection.private_vpc_connection.id
+}
