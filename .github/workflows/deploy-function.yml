@@ -25,8 +25,8 @@ jobs:
     - name: Enable Required APIs
       run: |
         gcloud services enable cloudfunctions.googleapis.com
-        gcloud services enable eventarc.googleapis.com
-        gcloud services enable pubsub.googleapis.com
+        gcloud services enable run.googleapis.com
+        gcloud services enable cloudbuild.googleapis.com
         sleep 60  # Wait for APIs to propagate
     
     - name: Deploy Cloud Function
@@ -34,7 +34,7 @@ jobs:
         GH_PAT: ${{ secrets.GH_PAT }}
       run: |
         gcloud functions deploy $FUNCTION_NAME \
-          --runtime python39 \
+          --runtime python311 \
           --trigger-http \
           --allow-unauthenticated \
           --source cloud_function/ \
