@@ -23,9 +23,9 @@ resource "google_secret_manager_secret" "github_pat" {
 }
 
 output "failover_function_name" {
-  value = module.function.failover_fn_name
+  value = google_cloudfunctions_function.failover_fn.name
 }
 
 output "pubsub_topic_name" {
-  value = module.function.failover_topic_name
+  value = google_pubsub_topic.failover.name
 }

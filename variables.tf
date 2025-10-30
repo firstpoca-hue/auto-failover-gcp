@@ -244,21 +244,21 @@ variable "source_bucket" {
   type        = string
 }
 
-variable "source_object" {
-  description = "Object name (zip) for the Cloud Function source code"
-  type        = string
-}
+# variable "source_object" {
+#   description = "Object name (zip) for the Cloud Function source code"
+#   type        = string
+# }
 
-variable "github_secret_name" {
-  description = "Name for the GitHub PAT secret in Secret Manager"
-  type        = string
-  default     = "github-pat"
-}
+# variable "github_secret_name" {
+#   description = "Name for the GitHub PAT secret in Secret Manager"
+#   type        = string
+#   default     = "github-pat"
+# }
 
-variable "source_bucket" {
-  description = "Bucket containing the Cloud Function source code zip"
-  type        = string
-}
+# variable "source_bucket" {
+#   description = "Bucket containing the Cloud Function source code zip"
+#   type        = string
+# }
 
 variable "source_object" {
   description = "Object name (zip) for the Cloud Function source code"
