@@ -15,7 +15,7 @@ network_name   = "dr-net"
 primary_cidr   = "10.10.0.0/20"
 secondary_cidr = "10.20.0.0/20"
 psa_range_name    = "private-ip-address"
-psa_prefix_length = 24
+psa_prefix_length = 20
 
  
 ############################
