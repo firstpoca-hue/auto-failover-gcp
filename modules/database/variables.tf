@@ -2,7 +2,6 @@
 
 variable "project_id" {}
 variable "name_prefix" {}
-variable "network" {}
 variable "enable_replica" {
 type = bool
 default = true
