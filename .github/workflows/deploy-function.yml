@@ -22,13 +22,21 @@ jobs:
     - name: Set up Cloud SDK
       uses: google-github-actions/setup-gcloud@v2
     
+    - name: Enable Required APIs
+      run: |
+        gcloud services enable cloudfunctions.googleapis.com
+        gcloud services enable eventarc.googleapis.com
+        gcloud services enable pubsub.googleapis.com
+        sleep 60  # Wait for APIs to propagate
+    
     - name: Deploy Cloud Function
       env:
         GH_PAT: ${{ secrets.GH_PAT }}
       run: |
         gcloud functions deploy $FUNCTION_NAME \
           --runtime python39 \
-          --trigger-topic monitoring-alerts \
+          --trigger-http \
+          --allow-unauthenticated \
           --source cloud_function/ \
           --entry-point trigger_failover \
           --set-env-vars GITHUB_REPO="${{ github.repository }}" \

@@ -1,10 +1,10 @@
-import base64, os, json, requests
+import os, json, requests
 
-def trigger_failover(event, context):
+def trigger_failover(request):
     try:
-        payload = base64.b64decode(event['data']).decode('utf-8')
+        payload = request.get_json() or {}
     except Exception:
-        payload = "{}"
+        payload = {}
     
     repo = os.getenv("GITHUB_REPO")
     token = os.getenv("GH_PAT")
