@@ -72,7 +72,12 @@ module "monitoring" {
   source = "./modules/monitoring"
   project_id = var.project_id
   alert_email = var.alert_email
-  function_region = var.function_region
-  function_name = var.function_name
-  webhook_auth_token = var.cloud_function_auth_token
+}
+
+module "function" {
+  source = "./modules/function"
+
+  source_bucket      = var.source_bucket
+  source_object      = var.source_object
+  github_secret_name = var.github_secret_name
 }

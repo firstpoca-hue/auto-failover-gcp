@@ -21,3 +21,11 @@ resource "google_secret_manager_secret" "github_pat" {
   auto {} 
 }
 }
+
+output "failover_function_name" {
+  value = module.function.failover_fn_name
+}
+
+output "pubsub_topic_name" {
+  value = module.function.failover_topic_name
+}

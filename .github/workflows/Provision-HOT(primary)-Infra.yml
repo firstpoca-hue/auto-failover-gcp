@@ -11,8 +11,9 @@ on:
 
 env:
   TF_IN_AUTOMATION: "true"
-  WORKING_DIR: .        # ✅ Changed from 'root' to current directory
+  WORKING_DIR: .
   TFVARS_PATH: "terraform.tfvars"
+  TF_VAR_github_token: ${{ secrets.GH_PAT }}   # ✅ Added for passing GitHub PAT securely
 
 jobs:
 
@@ -42,90 +43,6 @@ jobs:
         with:
           name: terraform-initialized
           path: .terraform
-
-
-  # -------------------------------
-  # 2️⃣ Checkov Scan
-  # -------------------------------
-  # checkov-scan:
-  #   name: 🛡️ Checkov Scan
-  #   runs-on: ubuntu-latest
-  #   needs: init
-  #   defaults:
-  #     run:
-  #       working-directory: ${{ env.WORKING_DIR }}
-  #   steps:
-  #     - uses: actions/checkout@v4
-
-  #     - name: Install Checkov
-  #       run: pip install checkov
-
-  #     - name: Run Checkov (continue but mark as warning)
-  #       id: checkov
-  #       continue-on-error: true
-  #       run: |
-  #         echo "🔍 Running Checkov..."
-  #         checkov -d . --quiet --compact > checkov.output
-  #         if [ $? -ne 0 ]; then
-  #           echo "⚠️ Checkov found policy violations — continuing pipeline..."
-  #           exit 78
-  #         else
-  #           echo "✅ Checkov passed without issues."
-  #         fi
-
-  #     - name: Upload Checkov Output
-  #       if: always()
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: checkov.output
-  #         path: checkov.output     # ✅ simplified path (no $WORKING_DIR prefix)
-
-  #     - name: Summarize Checkov Results
-  #       if: always()
-  #       run: |
-  #         echo "### 🛡️ Checkov Scan Summary" >> $GITHUB_STEP_SUMMARY
-  #         echo "⚠️ Completed with potential policy violations (review checkov.output artifact)" >> $GITHUB_STEP_SUMMARY
-
-
-  # # -------------------------------
-  # # 3️⃣ Trivy Scan
-  # # -------------------------------
-  # trivy-scan:
-  #   name: 🔍 Trivy Scan
-  #   runs-on: ubuntu-latest
-  #   needs: init
-  #   defaults:
-  #     run:
-  #       working-directory: ${{ env.WORKING_DIR }}
-  #   steps:
-  #     - uses: actions/checkout@v4
-
-  #     - name: Run Trivy (continue but mark as warning)
-  #       id: trivy
-  #       continue-on-error: true
-  #       run: |
-  #         echo "🔍 Running Trivy..."
-  #         docker run --rm -v $PWD:/scan aquasec/trivy fs --severity HIGH,CRITICAL /scan > trivy.output
-  #         if [ $? -ne 0 ]; then
-  #           echo "⚠️ Trivy found vulnerabilities — marking job as warning."
-  #           exit 78
-  #         else
-  #           echo "✅ Trivy scan passed without critical findings."
-  #         fi
-
-  #     - name: Upload Trivy Output
-  #       if: always()
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: trivy.output
-  #         path: trivy.output       # ✅ simplified path
-
-  #     - name: Summarize Trivy Results
-  #       if: always()
-  #       run: |
-  #         echo "### 🔍 Trivy Scan Summary" >> $GITHUB_STEP_SUMMARY
-  #         echo "⚠️ Completed with potential vulnerabilities (review trivy.output artifact)" >> $GITHUB_STEP_SUMMARY
-
 
   # -------------------------------
   # 4️⃣ Terraform Plan
@@ -200,8 +117,6 @@ jobs:
           else
             echo "- Plan completed with a non-standard status." >> $GITHUB_STEP_SUMMARY
           fi
-
-
 
   # -------------------------------
   # 5️⃣ Infracost Analysis
