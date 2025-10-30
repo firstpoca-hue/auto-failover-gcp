@@ -27,9 +27,16 @@ jobs:
         install_components: 'gke-gcloud-auth-plugin'
     
     - name: Deploy Secondary Infrastructure
+      env:
+        GH_PAT: ${{ secrets.GH_PAT }}
       run: |
         terraform init
         terraform apply -var="deploy_secondary=true" -auto-approve
+        
+        # Update Cloud Function with GitHub token
+        gcloud functions deploy failover-trigger \
+          --set-env-vars GH_PAT="$GH_PAT" \
+          --region=us-central1 --project=hot-cold-drp
     
     - name: Configure Docker
       run: gcloud auth configure-docker us-west1-docker.pkg.dev

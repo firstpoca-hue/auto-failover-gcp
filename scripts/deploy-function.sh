@@ -12,7 +12,7 @@ gcloud functions deploy $FUNCTION_NAME \
   --source cloud_function/ \
   --entry-point trigger_failover \
   --set-env-vars GITHUB_REPO="your-org/your-repo" \
-  --set-env-vars GITHUB_TOKEN="$(gcloud secrets versions access latest --secret=github-pat)" \
+  --set-env-vars GH_PAT="$GH_PAT" \
   --region=$REGION \
   --project=$PROJECT_ID
 
