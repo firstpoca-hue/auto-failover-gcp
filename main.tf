@@ -76,6 +76,7 @@ module "monitoring" {
 
 output "webhook_auth_token" {
   value     = module.monitoring.webhook_auth_token
+  sensitive = true
 }
 
 # module "function" {
