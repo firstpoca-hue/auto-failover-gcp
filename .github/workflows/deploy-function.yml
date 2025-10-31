@@ -38,7 +38,7 @@ jobs:
           --trigger-http \
           --allow-unauthenticated \
           --source cloud_function/ \
-          --entry-point failover \
+          --entry-point trigger_failover \
           --set-env-vars GITHUB_REPO="${{ github.repository }}" \
           --set-env-vars GH_PAT="$GH_PAT" \
           --region=$REGION \
