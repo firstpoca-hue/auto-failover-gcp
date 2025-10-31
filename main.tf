@@ -74,10 +74,10 @@ module "monitoring" {
   alert_email = var.alert_email
 }
 
-module "function" {
-  source = "./modules/function"
+# module "function" {
+#   source = "./modules/function"
 
-  source_bucket      = var.source_bucket
-  source_object      = var.source_object
-  github_secret_name = var.github_secret_name
-}
+#   source_bucket      = var.source_bucket
+#   source_object      = var.source_object
+#   github_secret_name = var.github_secret_name
+# }
