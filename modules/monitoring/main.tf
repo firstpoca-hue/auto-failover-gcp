@@ -8,11 +8,11 @@ resource "google_monitoring_alert_policy" "app_down" {
   combiner = "OR"
 
   conditions {
-    display_name = "GKE Cluster Down"
+    display_name = "GKE Node CPU High"
     condition_threshold {
-      filter          = "metric.type=\"container.googleapis.com/container/up\" AND resource.type=\"k8s_container\""
-      comparison      = "COMPARISON_LT"
-      threshold_value = 1
+      filter          = "metric.type=\"compute.googleapis.com/instance/cpu/utilization\" AND resource.type=\"gce_instance\""
+      comparison      = "COMPARISON_GT"
+      threshold_value = 0.9
       duration        = "300s"
       aggregations {
         alignment_period   = "60s"
