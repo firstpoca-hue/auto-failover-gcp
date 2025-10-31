@@ -72,11 +72,8 @@ module "monitoring" {
   source = "./modules/monitoring"
   project_id = var.project_id
   alert_email = var.alert_email
-}
-
-output "webhook_auth_token" {
-  value     = module.monitoring.webhook_auth_token
-  sensitive = true
+  function_region = var.function_region
+  function_name = var.function_name
 }
 
 # module "function" {
