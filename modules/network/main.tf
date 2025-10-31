@@ -110,9 +110,9 @@ output "secondary_neg_self_links" {
   } : {}
 }
 
-output "maintenance_neg_self_link" {
-  value = google_compute_network_endpoint_group.maintenance_neg.self_link
-}
+# output "maintenance_neg_self_link" {
+#   value = google_compute_network_endpoint_group.maintenance_neg.self_link
+# }
 
 output "psa_connection_id" {
   value = google_service_networking_connection.private_vpc_connection.id

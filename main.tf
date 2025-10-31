@@ -75,7 +75,7 @@ module "monitoring" {
 }
 
 output "webhook_auth_token" {
-  value     = module.monitioring.webhook_auth_token
+  value     = module.monitoring.webhook_auth_token
 }
 
 # module "function" {
