@@ -14,7 +14,7 @@ resource "google_monitoring_alert_policy" "app_down" {
       # filter          = "metric.type=\"loadbalancing.googleapis.com/https/request_count\" AND resource.type=\"https_lb_rule\" AND metric.label.response_code_class=\"5xx\""
       comparison      = "COMPARISON_GT"
       threshold_value = 3
-      duration        = "10s"
+      duration        = "60s"
       aggregations {
         alignment_period   = "60s"
         per_series_aligner = "ALIGN_RATE"
