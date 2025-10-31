@@ -6,28 +6,27 @@ resource "random_password" "webhook_token" {
 resource "google_monitoring_alert_policy" "app_down" {
   display_name = "Application Down"
   combiner = "OR"
-
+ 
   conditions {
-    display_name = "GKE Node CPU High"
+    display_name = "Backend Service Unhealthy"
     condition_threshold {
-      filter          = "metric.type=\"compute.googleapis.com/instance/cpu/utilization\" AND resource.type=\"gce_instance\""
+      filter          = "metric.type=\"loadbalancing.googleapis.com/https/backend_request_count\" AND resource.type=\"gce_backend_service\" AND metric.label.response_code_class=\"5xx\""
       comparison      = "COMPARISON_GT"
-      threshold_value = 0.9
-      duration        = "300s"
+      threshold_value = 5
+      duration        = "120s"
       aggregations {
         alignment_period   = "60s"
-        per_series_aligner = "ALIGN_MEAN"
+        per_series_aligner = "ALIGN_RATE"
       }
     }
   }
-
+ 
   notification_channels = [
     google_monitoring_notification_channel.email.id,
     google_monitoring_notification_channel.webhook.id
   ]
   enabled               = true
 }
-
 
 resource "google_monitoring_notification_channel" "email" {
   display_name = "Alerts Email"
