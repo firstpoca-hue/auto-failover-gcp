@@ -39,15 +39,11 @@ resource "google_monitoring_notification_channel" "email" {
 
 resource "google_monitoring_notification_channel" "webhook" {
   display_name = "Failover Webhook"
-  type         = "webhook_tokenauth"
+  type         = "webhook_basic"
   enabled      = true
 
   labels = {
     url = "https://us-central1-hot-cold-drp.cloudfunctions.net/failover-trigger"
-  }
-
-  sensitive_labels {
-    auth_token = random_password.webhook_token.result
   }
 }
 
