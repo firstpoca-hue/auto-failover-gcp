@@ -1,3 +1,8 @@
+resource "random_password" "webhook_auth_token" {
+  length  = 32
+  special = true
+}
+
 resource "google_monitoring_alert_policy" "app_down" {
   display_name = "Application Down"
   combiner = "OR"
@@ -38,8 +43,9 @@ resource "google_monitoring_notification_channel" "webhook" {
   labels = {
     url = "https://${var.function_region}-${var.project_id}.cloudfunctions.net/${var.function_name}"
   }
+ 
   sensitive_labels {
-    auth_token = var.webhook_auth_token
+    auth_token = random_password.webhook_auth_token.result
   }
 }
 
@@ -60,3 +66,8 @@ resource "google_monitoring_notification_channel" "webhook" {
 
 #   notification_channels = [google_monitoring_notification_channel.email.id]
 # }
+
+output "webhook_auth_token" {
+  value     = random_password.webhook_auth_token.result
+  sensitive = true
+}

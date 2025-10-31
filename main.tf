@@ -74,6 +74,10 @@ module "monitoring" {
   alert_email = var.alert_email
 }
 
+output "webhook_auth_token" {
+  value     = module.monitioring.webhook_auth_token
+}
+
 # module "function" {
 #   source = "./modules/function"
 

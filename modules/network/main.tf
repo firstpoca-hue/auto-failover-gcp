@@ -48,13 +48,13 @@ resource "google_compute_network_endpoint_group" "secondary_neg" {
 }
 
 # Maintenance page bucket NEG
-resource "google_compute_network_endpoint_group" "maintenance_neg" {
-  name                  = "maintenance-page-neg"
-  network               = google_compute_network.vpc.id
-  default_port          = 443
-  network_endpoint_type = "INTERNET_FQDN_PORT"
-  zone                  = data.google_compute_zones.primary.names[0]
-}
+# resource "google_compute_network_endpoint_group" "maintenance_neg" {
+#   name                  = "maintenance-page-neg"
+#   network               = google_compute_network.vpc.id
+#   default_port          = 443
+#   network_endpoint_type = "INTERNET_FQDN_PORT"
+#   zone                  = data.google_compute_zones.primary.names[0]
+# }
 
  
 
