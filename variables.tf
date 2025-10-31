@@ -239,10 +239,10 @@ variable "db_name_prefix" {
 
 # NEW for PSA (Private Service Access)
 
-variable "source_bucket" {
-  description = "Bucket containing the Cloud Function source code zip"
-  type        = string
-}
+# variable "source_bucket" {
+#   description = "Bucket containing the Cloud Function source code zip"
+#   type        = string
+# }
 
 # variable "source_object" {
 #   description = "Object name (zip) for the Cloud Function source code"
