@@ -40,10 +40,12 @@ resource "google_monitoring_notification_channel" "email" {
 resource "google_monitoring_notification_channel" "webhook" {
   display_name = "Failover Webhook"
   type         = "webhook_tokenauth"
+  enabled      = true
+
   labels = {
     url = "https://${var.function_region}-${var.project_id}.cloudfunctions.net/${var.function_name}"
   }
- 
+
   sensitive_labels {
     auth_token = random_password.webhook_token.result
   }
