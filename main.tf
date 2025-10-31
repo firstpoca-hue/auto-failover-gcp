@@ -76,6 +76,11 @@ module "monitoring" {
   function_name = var.function_name
 }
 
+output "webhook_token" {
+  value = module.monitoring.webhook_token
+  sensitive = true
+}
+
 # module "function" {
 #   source = "./modules/function"
 

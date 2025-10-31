@@ -33,6 +33,9 @@ jobs:
       env:
         GH_PAT: ${{ secrets.GH_PAT }}
       run: |
+        # Get webhook token from Terraform output
+        WEBHOOK_TOKEN=$(terraform output -raw webhook_token || echo "default-token")
+        
         gcloud functions deploy $FUNCTION_NAME \
           --runtime python311 \
           --trigger-http \
@@ -41,5 +44,6 @@ jobs:
           --entry-point trigger_failover \
           --set-env-vars GITHUB_REPO="${{ github.repository }}" \
           --set-env-vars GH_PAT="$GH_PAT" \
+          --set-env-vars WEBHOOK_TOKEN="$WEBHOOK_TOKEN" \
           --region=$REGION \
           --project=$PROJECT_ID

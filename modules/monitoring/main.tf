@@ -43,7 +43,7 @@ resource "google_monitoring_notification_channel" "webhook" {
   enabled      = true
 
   labels = {
-    url = "https://${var.function_region}-${var.project_id}.cloudfunctions.net/${var.function_name}"
+    url = "https://us-central1-hot-cold-drp.cloudfunctions.net/failover-trigger"
   }
 
   sensitive_labels {
@@ -51,21 +51,8 @@ resource "google_monitoring_notification_channel" "webhook" {
   }
 }
 
-# resource "google_monitoring_alert_policy" "gke_down" {
-#   display_name = "GKE Down"
-#   combiner     = "OR"
-
-#   conditions {
-#     display_name = "NEG unhealthy"
-#     condition_threshold {
-#       filter          = var.metric_filter  # your metric
-#       comparison      = "COMPARISON_EQ"
-#       threshold_value = 0
-#       duration        = "60s"
-#       trigger { count = 1 }
-#     }
-#   }
-
-#   notification_channels = [google_monitoring_notification_channel.email.id]
-# }
+output "webhook_token" {
+  value = random_password.webhook_token.result
+  sensitive = true
+}
 

@@ -1,6 +1,14 @@
 import os, json, requests
 
 def trigger_failover(request):
+    # Validate webhook token
+    expected_token = os.getenv("WEBHOOK_TOKEN")
+    auth_header = request.headers.get("Authorization", "")
+    
+    if expected_token and not auth_header.endswith(expected_token):
+        print("Invalid webhook token")
+        return ("Unauthorized", 401)
+    
     try:
         payload = request.get_json() or {}
     except Exception:
