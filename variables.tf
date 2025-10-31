@@ -260,10 +260,10 @@ variable "db_name_prefix" {
 #   type        = string
 # }
 
-variable "source_object" {
-  description = "Object name (zip) for the Cloud Function source code"
-  type        = string
-}
+# variable "source_object" {
+#   description = "Object name (zip) for the Cloud Function source code"
+#   type        = string
+# }
 
 variable "github_secret_name" {
   description = "Name for the GitHub PAT secret in Secret Manager"
