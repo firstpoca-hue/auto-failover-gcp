@@ -8,15 +8,15 @@ resource "google_monitoring_alert_policy" "app_down" {
   combiner = "OR"
 
   conditions {
-    display_name = "Backend Service Unhealthy"
+    display_name = "GKE Cluster Down"
     condition_threshold {
-      filter          = "metric.type=\"loadbalancing.googleapis.com/https/backend_request_count\" AND resource.type=\"gce_backend_service\" AND metric.label.response_code_class=\"5xx\""
-      comparison      = "COMPARISON_GT"
-      threshold_value = 5
-      duration        = "120s"
+      filter          = "metric.type=\"container.googleapis.com/container/up\" AND resource.type=\"k8s_container\""
+      comparison      = "COMPARISON_LT"
+      threshold_value = 1
+      duration        = "300s"
       aggregations {
         alignment_period   = "60s"
-        per_series_aligner = "ALIGN_RATE"
+        per_series_aligner = "ALIGN_MEAN"
       }
     }
   }
