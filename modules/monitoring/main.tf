@@ -1,6 +1,6 @@
-resource "random_password" "webhook_auth_token" {
+resource "random_password" "webhook_token" {
   length  = 32
-  special = true
+  special = false
 }
 
 resource "google_monitoring_alert_policy" "app_down" {
@@ -45,7 +45,7 @@ resource "google_monitoring_notification_channel" "webhook" {
   }
  
   sensitive_labels {
-    auth_token = random_password.webhook_auth_token.result
+    auth_token = random_password.webhook_token.result
   }
 }
 
@@ -67,7 +67,3 @@ resource "google_monitoring_notification_channel" "webhook" {
 #   notification_channels = [google_monitoring_notification_channel.email.id]
 # }
 
-output "webhook_auth_token" {
-  value     = random_password.webhook_auth_token.result
-  sensitive = true
-}
