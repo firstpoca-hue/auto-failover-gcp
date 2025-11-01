@@ -5,7 +5,6 @@ module "network" {
   secondary_region = var.secondary_region
   psa_range_name = var.psa_range_name
   psa_prefix_length = var.psa_prefix_length
-  deploy_secondary = var.deploy_secondary
 }
 
 # --- PRIMARY GKE CLUSTER (always created)
@@ -53,7 +52,7 @@ module "database" {
 #   backends = []
 
 #   lb_name            = var.lb_name
-#   neg                = module.network.primary_neg_self_links
+#   #neg                = module.network.neg_self_links           # 🔹 Get NEG self-link from network module
 #   health_check_path  = var.health_check_path
 #   health_check_port  = var.health_check_port
 #   depends_on = [module.gke_primary]
@@ -72,19 +71,4 @@ module "monitoring" {
   source = "./modules/monitoring"
   project_id = var.project_id
   alert_email = var.alert_email
-  function_region = var.function_region
-  function_name = var.function_name
 }
-
-output "webhook_token" {
-  value = module.monitoring.webhook_token
-  sensitive = true
-}
-
-# module "function" {
-#   source = "./modules/function"
-
-#   source_bucket      = var.source_bucket
-#   source_object      = var.source_object
-#   github_secret_name = var.github_secret_name
-# }

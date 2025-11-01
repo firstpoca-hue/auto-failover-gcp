@@ -17,43 +17,21 @@ resource "google_compute_subnetwork" "secondary" {
   network = google_compute_network.vpc.id
 }
 
-data "google_compute_zones" "primary" {
+data "google_compute_zones" "available" {
   region = var.primary_region
 }
 
-data "google_compute_zones" "secondary" {
-  region = var.secondary_region
-}
+# resource "google_compute_network_endpoint_group" "app_service_neg" {
+#   for_each = toset(data.google_compute_zones.available.names)
 
-resource "google_compute_network_endpoint_group" "primary_neg" {
-  for_each = toset(data.google_compute_zones.primary.names)
+#   name                  = "app-service-neg-${each.value}"
+#   network               = google_compute_network.vpc.id     # pass from variables.tf or main.tf
+#   subnetwork            = google_compute_subnetwork.primary.id 
+#   zone                  = each.value  # pass from variables.tf or main.tf
+#   default_port          = 80
+#   network_endpoint_type = "GCE_VM_IP_PORT"   # or SERVERLESS
 
-  name                  = "primary-neg-${each.value}"
-  network               = google_compute_network.vpc.id
-  subnetwork            = google_compute_subnetwork.primary.id 
-  zone                  = each.value
-  default_port          = 30080
-  network_endpoint_type = "GCE_VM_IP_PORT"
-}
-
-resource "google_compute_network_endpoint_group" "secondary_neg" {
-  count = var.deploy_secondary ? length(data.google_compute_zones.secondary.names) : 0
-  
-  name                  = "secondary-neg-${data.google_compute_zones.secondary.names[count.index]}"
-  network               = google_compute_network.vpc.id
-  subnetwork            = google_compute_subnetwork.secondary.id
-  zone                  = data.google_compute_zones.secondary.names[count.index]
-  default_port          = 30080
-  network_endpoint_type = "GCE_VM_IP_PORT"
-}
-
-# Maintenance page bucket NEG
-# resource "google_compute_network_endpoint_group" "maintenance_neg" {
-#   name                  = "maintenance-page-neg"
-#   network               = google_compute_network.vpc.id
-#   default_port          = 443
-#   network_endpoint_type = "INTERNET_FQDN_PORT"
-#   zone                  = data.google_compute_zones.primary.names[0]
+#   description = "App Service NEG for zone ${each.value}"
 # }
 
  
@@ -96,22 +74,11 @@ output "secondary_subnet_id" {
 #   value = google_compute_network_endpoint_group.app_service_neg[each.Key].self_link
 # }
 
-output "primary_neg_self_links" {
-  value = {
-    for zone in data.google_compute_zones.primary.names :
-    zone => google_compute_network_endpoint_group.primary_neg[zone].self_link
-  }
-}
-
-output "secondary_neg_self_links" {
-  value = var.deploy_secondary ? {
-    for i, zone in data.google_compute_zones.secondary.names :
-    zone => google_compute_network_endpoint_group.secondary_neg[i].self_link
-  } : {}
-}
-
-# output "maintenance_neg_self_link" {
-#   value = google_compute_network_endpoint_group.maintenance_neg.self_link
+# output "neg_self_links" {
+#   value = {
+#     for zone in data.google_compute_zones.available.names :
+#     zone => google_compute_network_endpoint_group.app_service_neg[zone].self_link
+#   }
 # }
 
 output "psa_connection_id" {

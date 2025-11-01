@@ -35,7 +35,7 @@ enable_private_nodes    = false
 ############################
 lb_name            = "app-lb-backend"
 health_check_path  = "/"
-health_check_port = 30080
+health_check_port = 80
  
 # Using self-signed certs (files live in modules/lb/certs/)
 use_managed_cert   = false
@@ -43,9 +43,9 @@ use_managed_cert   = false
 # NEG wiring (primary known at start, secondary populated on failover)
 # Replace the <replace> parts after your Service with NEG annotation is deployed.
 primary_neg_name   = "k8s1-<replace>-app-service-80"
-primary_neg_zone   = "us-central1-a"
-secondary_neg_name = "k8s1-<replace>-app-service-30080"
-secondary_neg_zone = "us-west1-a"
+primary_neg_zone   = "asia-south1-a"
+secondary_neg_name = "k8s1-<replace>-app-service-80"
+secondary_neg_zone = "asia-southeast1-a"
  
 ############################
 # Database (Cloud SQL Postgres)
@@ -77,8 +77,8 @@ function_name       = "failover-trigger"
 function_region     = "us-central1"
  
 # GitHub Actions repository details (used by the Function to call repository_dispatch)
-github_owner        = "firstpoca-hue"
-github_repo         = "https://github.com/firstpoca-hue/auto-failover-gcp"
+github_owner        = "your-org"
+github_repo         = "your-repo"
 github_event_type   = "failover_trigger"
  
 # If your Function reads the PAT from Secret Manager, set this name; otherwise ignore.
@@ -88,7 +88,7 @@ github_pat_secret   = "github-pat"
 github_ref          = "refs/heads/main"
  
 # Handy to pass secondary region to the workflow dispatch inputs
-failover_secondary_region = "us-west1"
+failover_secondary_region = "asia-southeast1"
  
 ############################
 # Artifact Registry (optional hints)

@@ -11,9 +11,8 @@ on:
 
 env:
   TF_IN_AUTOMATION: "true"
-  WORKING_DIR: .
+  WORKING_DIR: .        # ✅ Changed from 'root' to current directory
   TFVARS_PATH: "terraform.tfvars"
-  TF_VAR_github_token: ${{ secrets.GH_PAT }}   # ✅ Added for passing GitHub PAT securely
 
 jobs:
 
@@ -43,6 +42,90 @@ jobs:
         with:
           name: terraform-initialized
           path: .terraform
+
+
+  # -------------------------------
+  # 2️⃣ Checkov Scan
+  # -------------------------------
+  # checkov-scan:
+  #   name: 🛡️ Checkov Scan
+  #   runs-on: ubuntu-latest
+  #   needs: init
+  #   defaults:
+  #     run:
+  #       working-directory: ${{ env.WORKING_DIR }}
+  #   steps:
+  #     - uses: actions/checkout@v4
+
+  #     - name: Install Checkov
+  #       run: pip install checkov
+
+  #     - name: Run Checkov (continue but mark as warning)
+  #       id: checkov
+  #       continue-on-error: true
+  #       run: |
+  #         echo "🔍 Running Checkov..."
+  #         checkov -d . --quiet --compact > checkov.output
+  #         if [ $? -ne 0 ]; then
+  #           echo "⚠️ Checkov found policy violations — continuing pipeline..."
+  #           exit 78
+  #         else
+  #           echo "✅ Checkov passed without issues."
+  #         fi
+
+  #     - name: Upload Checkov Output
+  #       if: always()
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: checkov.output
+  #         path: checkov.output     # ✅ simplified path (no $WORKING_DIR prefix)
+
+  #     - name: Summarize Checkov Results
+  #       if: always()
+  #       run: |
+  #         echo "### 🛡️ Checkov Scan Summary" >> $GITHUB_STEP_SUMMARY
+  #         echo "⚠️ Completed with potential policy violations (review checkov.output artifact)" >> $GITHUB_STEP_SUMMARY
+
+
+  # # -------------------------------
+  # # 3️⃣ Trivy Scan
+  # # -------------------------------
+  # trivy-scan:
+  #   name: 🔍 Trivy Scan
+  #   runs-on: ubuntu-latest
+  #   needs: init
+  #   defaults:
+  #     run:
+  #       working-directory: ${{ env.WORKING_DIR }}
+  #   steps:
+  #     - uses: actions/checkout@v4
+
+  #     - name: Run Trivy (continue but mark as warning)
+  #       id: trivy
+  #       continue-on-error: true
+  #       run: |
+  #         echo "🔍 Running Trivy..."
+  #         docker run --rm -v $PWD:/scan aquasec/trivy fs --severity HIGH,CRITICAL /scan > trivy.output
+  #         if [ $? -ne 0 ]; then
+  #           echo "⚠️ Trivy found vulnerabilities — marking job as warning."
+  #           exit 78
+  #         else
+  #           echo "✅ Trivy scan passed without critical findings."
+  #         fi
+
+  #     - name: Upload Trivy Output
+  #       if: always()
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: trivy.output
+  #         path: trivy.output       # ✅ simplified path
+
+  #     - name: Summarize Trivy Results
+  #       if: always()
+  #       run: |
+  #         echo "### 🔍 Trivy Scan Summary" >> $GITHUB_STEP_SUMMARY
+  #         echo "⚠️ Completed with potential vulnerabilities (review trivy.output artifact)" >> $GITHUB_STEP_SUMMARY
+
 
   # -------------------------------
   # 4️⃣ Terraform Plan
@@ -118,90 +201,92 @@ jobs:
             echo "- Plan completed with a non-standard status." >> $GITHUB_STEP_SUMMARY
           fi
 
+
+
   # -------------------------------
   # 5️⃣ Infracost Analysis
   # -------------------------------
-  # infracost:
-  #   name: 💰 Cost Analysis
-  #   needs: plan
-  #   if: ${{ always() && needs.plan.result == 'success' }}
-  #   runs-on: ubuntu-latest
-  #   defaults:
-  #     run:
-  #       working-directory: ${{ env.WORKING_DIR }}
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: hashicorp/setup-terraform@v3
+  infracost:
+    name: 💰 Cost Analysis
+    needs: plan
+    if: ${{ always() && needs.plan.result == 'success' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.WORKING_DIR }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
 
-  #     - name: Setup Infracost
-  #       uses: infracost/actions/setup@v3
-  #       with:
-  #         api-key: ${{ secrets.INFRACOST_API_KEY }}
+      - name: Setup Infracost
+        uses: infracost/actions/setup@v3
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
 
-  #     - name: Google Auth
-  #       uses: google-github-actions/auth@v2
-  #       with:
-  #         credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - name: Google Auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-  #     - name: Terraform Init
-  #       run: terraform init -reconfigure
+      - name: Terraform Init
+        run: terraform init -reconfigure
 
-  #     - name: Download Plan Artifact
-  #       if: ${{ needs.plan.outputs.has_changes == 'true' }}
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: tfplan
-  #         path: .
+      - name: Download Plan Artifact
+        if: ${{ needs.plan.outputs.has_changes == 'true' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan
+          path: .
       
-  #     - name: Generate Plan for Infracost (no changes)
-  #       if: ${{ needs.plan.outputs.has_changes != 'true' }}
-  #       run: |
-  #         terraform plan \
-  #           -var-file="${{ env.TFVARS_PATH }}" \
-  #           -input=false -no-color -out=tfplan.bin
+      - name: Generate Plan for Infracost (no changes)
+        if: ${{ needs.plan.outputs.has_changes != 'true' }}
+        run: |
+          terraform plan \
+            -var-file="${{ env.TFVARS_PATH }}" \
+            -input=false -no-color -out=tfplan.bin
 
-  #     - name: Generate Infracost JSON
-  #       run: |
-  #         infracost breakdown \
-  #           --path=tfplan.bin \
-  #           --format=json \
-  #           --out-file=infracost.json
+      - name: Generate Infracost JSON
+        run: |
+          infracost breakdown \
+            --path=tfplan.bin \
+            --format=json \
+            --out-file=infracost.json
 
-  #     - name: Generate Infracost Report
-  #       run: |
-  #         infracost output \
-  #           --path=infracost.json \
-  #           --format=html \
-  #           --out-file=infracost-report.html
+      - name: Generate Infracost Report
+        run: |
+          infracost output \
+            --path=infracost.json \
+            --format=html \
+            --out-file=infracost-report.html
           
-  #         infracost output \
-  #           --path=infracost.json \
-  #           --format=table \
-  #           --out-file=infracost-summary.txt
+          infracost output \
+            --path=infracost.json \
+            --format=table \
+            --out-file=infracost-summary.txt
 
-  #     - name: Upload Infracost Reports
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: infracost-reports
-  #         path: |
-  #           infracost.json
-  #           infracost-report.html
-  #           infracost-summary.txt
+      - name: Upload Infracost Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: infracost-reports
+          path: |
+            infracost.json
+            infracost-report.html
+            infracost-summary.txt
 
-  #     - name: Post Cost Summary
-  #       run: |
-  #         echo "### 💰 Infrastructure Cost Analysis" >> $GITHUB_STEP_SUMMARY
-  #         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-  #         cat infracost-summary.txt >> $GITHUB_STEP_SUMMARY
-  #         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-  #         echo "📊 Detailed report available in infracost-reports artifact" >> $GITHUB_STEP_SUMMARY
+      - name: Post Cost Summary
+        run: |
+          echo "### 💰 Infrastructure Cost Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          cat infracost-summary.txt >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "📊 Detailed report available in infracost-reports artifact" >> $GITHUB_STEP_SUMMARY
 
   # -------------------------------
   # 6️⃣ Terraform Apply
   # -------------------------------
   apply:
     name: Terraform Apply
-    needs: plan
+    needs: [plan, infracost]
     if: ${{ always() && (inputs.force_apply || needs.plan.outputs.has_changes == 'true') }}
     runs-on: ubuntu-latest
     defaults:

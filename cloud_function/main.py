@@ -1,26 +1,15 @@
-import os, json, requests
+import base64, os, json, requests
 
-def trigger_failover(request):
-    # Validate webhook token
-    expected_token = os.getenv("WEBHOOK_TOKEN")
-    auth_header = request.headers.get("Authorization", "")
-    
-    if expected_token and not auth_header.endswith(expected_token):
-        print("Invalid webhook token")
-        return ("Unauthorized", 401)
-    
+def trigger_failover(event, context):
     try:
-        payload = request.get_json() or {}
+        payload = base64.b64decode(event['data']).decode('utf-8')
     except Exception:
-        payload = {}
-    
+        payload = "{}"
     repo = os.getenv("GITHUB_REPO")
-    token = os.getenv("GH_PAT")
-    
+    token = os.getenv("GITHUB_TOKEN")
     if not repo or not token:
-        print("GITHUB_REPO or GH_PAT not set")
-        return ("missing config", 500)
-    
+        print("GITHUB_REPO or GITHUB_TOKEN not set")
+        return ("missing env", 500)
     url = f"https://api.github.com/repos/{repo}/dispatches"
     headers = {
         "Accept": "application/vnd.github+json",
@@ -28,7 +17,7 @@ def trigger_failover(request):
     }
     data = {
         "event_type": "failover_trigger",
-        "client_payload": {"reason":"monitoring", "payload": str(payload)}
+        "client_payload": {"reason":"monitoring", "payload": payload}
     }
     r = requests.post(url, headers=headers, json=data)
     print("GitHub response", r.status_code, r.text)

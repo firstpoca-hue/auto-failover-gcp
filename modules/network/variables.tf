@@ -10,7 +10,3 @@ variable "psa_prefix_length" {
   description = "Prefix length (e.g., 24 for /24) for the PSA reserved range"
   type        = number
 }
-variable "deploy_secondary" {
-  type = bool
-  default = false
-}
