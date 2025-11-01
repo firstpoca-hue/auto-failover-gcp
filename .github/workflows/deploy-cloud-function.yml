@@ -26,6 +26,10 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
+      - name: Create Pub/Sub topic if not exists
+        run: |
+          gcloud pubsub topics create failover-notify || echo "Topic already exists"
+
       - name: Create GitHub PAT secret
         run: |
           echo "${{ secrets.GH_PAT }}" | gcloud secrets create github-pat --data-file=- || \
@@ -35,6 +39,7 @@ jobs:
         run: |
           cd cloud_function
           gcloud functions deploy $FUNCTION_NAME \
+            --gen2 \
             --runtime python311 \
             --trigger-topic failover-notify \
             --entry-point trigger_failover \
@@ -43,10 +48,6 @@ jobs:
             --set-env-vars GITHUB_TOKEN=${{ secrets.GH_PAT }} \
             --memory 256MB \
             --timeout 60s
-
-      - name: Create Pub/Sub topic if not exists
-        run: |
-          gcloud pubsub topics create failover-notify || echo "Topic already exists"
 
       - name: Verify deployment
         run: |
