@@ -1,0 +1,55 @@
+name: Failover to Secondary Region
+
+on:
+  repository_dispatch:
+    types: [failover_trigger]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  failover:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup gcloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          install_components: 'gke-gcloud-auth-plugin'
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Terraform init
+        run: terraform init
+
+      - name: Deploy secondary infrastructure
+        run: |
+          terraform apply -auto-approve -var="deploy_secondary=true"
+
+      - name: Get secondary cluster credentials
+        run: |
+          gcloud container clusters get-credentials gke-secondary-cluster \
+            --region=us-west1 --project=hot-cold-drp
+
+      - name: Deploy app to secondary cluster
+        env:
+          USE_GKE_GCLOUD_AUTH_PLUGIN: True
+        run: |
+          kubectl apply -f k8s/app.yaml
+          kubectl apply -f k8s/monitoring.yaml
+          kubectl rollout status deployment/web-app --timeout=300s
+
+      - name: Notify failover complete
+        run: |
+          echo "✅ Failover to secondary region (us-west1) completed successfully"
+          echo "Secondary cluster: gke-secondary-cluster"
+          echo "Region: us-west1"

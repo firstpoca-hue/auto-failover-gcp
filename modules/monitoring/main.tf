@@ -3,12 +3,12 @@ resource "google_monitoring_alert_policy" "app_down" {
   combiner = "OR"
 
   conditions {
-    display_name = "Load Balancer Error Rate High"
+    display_name = "Application Pod Restarts High"
     condition_threshold {
-      filter          = "metric.type=\"loadbalancing.googleapis.com/https/request_count\" AND resource.type=\"https_lb_rule\""
+      filter          = "metric.type=\"kubernetes.io/container/restart_count\" AND resource.labels.container_name=\"web-app\""
       comparison      = "COMPARISON_GT"
-      threshold_value = 0
-      duration        = "60s"
+      threshold_value = 3
+      duration        = "300s"
       aggregations {
         alignment_period   = "300s"
         per_series_aligner = "ALIGN_RATE"

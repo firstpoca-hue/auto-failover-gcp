@@ -1,0 +1,54 @@
+name: Deploy Cloud Function
+
+on:
+  workflow_dispatch:
+  push:
+    paths: 
+      - 'cloud_function/**'
+
+env:
+  PROJECT_ID: hot-cold-drp
+  FUNCTION_NAME: failover-trigger
+  REGION: us-central1
+
+jobs:
+  deploy-function:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Create GitHub PAT secret
+        run: |
+          echo "${{ secrets.GH_PAT }}" | gcloud secrets create github-pat --data-file=- || \
+          echo "${{ secrets.GH_PAT }}" | gcloud secrets versions add github-pat --data-file=-
+
+      - name: Deploy Cloud Function
+        run: |
+          cd cloud_function
+          gcloud functions deploy $FUNCTION_NAME \
+            --runtime python311 \
+            --trigger-topic failover-notify \
+            --entry-point trigger_failover \
+            --region $REGION \
+            --set-env-vars GITHUB_REPO=firstpoca-hue/auto-failover-gcp \
+            --set-env-vars GITHUB_TOKEN=${{ secrets.GH_PAT }} \
+            --memory 256MB \
+            --timeout 60s
+
+      - name: Create Pub/Sub topic if not exists
+        run: |
+          gcloud pubsub topics create failover-notify || echo "Topic already exists"
+
+      - name: Verify deployment
+        run: |
+          echo "✅ Cloud Function deployed successfully"
+          gcloud functions describe $FUNCTION_NAME --region=$REGION
