@@ -16,7 +16,10 @@ resource "google_monitoring_alert_policy" "app_down" {
     }
   }
 
-  notification_channels = [google_monitoring_notification_channel.email.id]
+  notification_channels = [
+    google_monitoring_notification_channel.email.id,
+    google_monitoring_notification_channel.pubsub.id
+  ]
   enabled               = true
 }
 
@@ -26,6 +29,14 @@ resource "google_monitoring_notification_channel" "email" {
   type         = "email"
   labels = { 
   email_address = var.alert_email 
+  }
+}
+
+resource "google_monitoring_notification_channel" "pubsub" {
+  display_name = "Failover Trigger"
+  type         = "pubsub"
+  labels = {
+    topic = "projects/hot-cold-drp/topics/failover-notify"
   }
 }
 

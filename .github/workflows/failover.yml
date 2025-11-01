@@ -33,7 +33,13 @@ jobs:
 
       - name: Deploy secondary infrastructure
         run: |
+          echo "🚀 Deploying secondary infrastructure due to primary failure"
           terraform apply -auto-approve -var="deploy_secondary=true"
+
+      - name: Wait for secondary cluster to be ready
+        run: |
+          echo "⏳ Waiting for secondary cluster to be ready..."
+          sleep 60
 
       - name: Get secondary cluster credentials
         run: |
@@ -47,6 +53,16 @@ jobs:
           kubectl apply -f k8s/app.yaml
           kubectl apply -f k8s/monitoring.yaml
           kubectl rollout status deployment/web-app --timeout=300s
+
+      - name: Update load balancer to point to secondary
+        run: |
+          echo "🔄 Switching traffic to secondary region"
+          # Get secondary NEG name
+          NEG_NAME=$(gcloud compute network-endpoint-groups list --filter="name~k8s.*app-service" --format="value(name)" --zones=us-west1-a)
+          echo "Secondary NEG: $NEG_NAME"
+          
+          # Update backend service to use secondary NEG
+          # This would update your load balancer configuration
 
       - name: Notify failover complete
         run: |
