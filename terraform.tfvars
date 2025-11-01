@@ -6,7 +6,7 @@ primary_region    = "us-central1"
 secondary_region  = "us-west1"
  
 # Create secondary infra only during failover (set true in GH Actions failover job)
-deploy_secondary  = true
+deploy_secondary  = false
  
 ############################
 # Network
