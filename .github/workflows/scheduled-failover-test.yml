@@ -1,0 +1,21 @@
+name: Scheduled Failover Test
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # Every 6 hours
+  workflow_dispatch:       # Manual trigger
+
+jobs:
+  automated-failover-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Failover Test
+        run: |
+          echo "🚀 Starting automated failover test..."
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.GH_PAT }}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/firstpoca-hue/auto-failover-gcp/dispatches \
+            -d '{"event_type":"failover_trigger","client_payload":{"reason":"scheduled_test","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}}'
+          
+          echo "✅ Failover test triggered via GitHub API"

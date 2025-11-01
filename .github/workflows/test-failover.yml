@@ -1,0 +1,36 @@
+name: Test Failover
+
+on:
+  workflow_dispatch:
+
+jobs:
+  simulate-failure:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          install_components: 'gke-gcloud-auth-plugin'
+
+      - name: Simulate Primary App Failure
+        run: |
+          echo "🔥 Simulating primary application failure..."
+          gcloud container clusters get-credentials gke-primary-cluster \
+            --region=us-central1 --project=hot-cold-drp
+          
+          # Delete app deployment to trigger restart alerts
+          kubectl delete deployment web-app || echo "Deployment not found"
+          
+          echo "✅ Primary app failure simulated - monitoring should detect and trigger failover"
+
+      - name: Trigger Manual Failover (Backup method)
+        run: |
+          echo "📡 Triggering manual failover via Pub/Sub..."
+          gcloud pubsub topics publish failover-notify --message="automated test failover"
+          
+          echo "✅ Failover triggered - check GitHub Actions for failover workflow"
