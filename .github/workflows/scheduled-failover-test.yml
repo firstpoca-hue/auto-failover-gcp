@@ -12,10 +12,11 @@ jobs:
       - name: Trigger Failover Test
         run: |
           echo "🚀 Starting automated failover test..."
+          TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
           curl -X POST \
             -H "Authorization: Bearer ${{ secrets.GH_PAT }}" \
             -H "Accept: application/vnd.github+json" \
             https://api.github.com/repos/firstpoca-hue/auto-failover-gcp/dispatches \
-            -d '{"event_type":"failover_trigger","client_payload":{"reason":"scheduled_test","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}}'
+            -d "{\"event_type\":\"failover_trigger\",\"client_payload\":{\"reason\":\"scheduled_test\",\"timestamp\":\"$TIMESTAMP\"}}"
           
           echo "✅ Failover test triggered via GitHub API"
