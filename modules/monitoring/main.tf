@@ -5,7 +5,7 @@ resource "google_monitoring_alert_policy" "app_down" {
   conditions {
     display_name = "Application Pod Restarts High"
     condition_threshold {
-      filter          = "metric.type=\"kubernetes.io/container/restart_count\" AND resource.labels.container_name=\"web-app\""
+      filter          = "metric.type=\"kubernetes.io/container/restart_count\" AND resource.type=\"k8s_container\" AND resource.labels.container_name=\"web-app\""
       comparison      = "COMPARISON_GT"
       threshold_value = 3
       duration        = "300s"
