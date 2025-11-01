@@ -46,8 +46,8 @@ jobs:
             --region $REGION \
             --set-env-vars GITHUB_REPO=firstpoca-hue/auto-failover-gcp \
             --set-env-vars GITHUB_TOKEN=${{ secrets.GH_PAT }} \
-            --memory 256MB \
-            --timeout 60s
+            --memory=256MB \
+            --timeout=60s
 
       - name: Verify deployment
         run: |
