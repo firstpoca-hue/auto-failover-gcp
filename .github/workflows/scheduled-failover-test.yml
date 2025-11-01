@@ -9,14 +9,16 @@ jobs:
   automated-failover-test:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Failover Test
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Trigger Failover via Pub/Sub
         run: |
           echo "🚀 Starting automated failover test..."
-          TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-          curl -X POST \
-            -H "Authorization: Bearer ${{ secrets.GH_PAT }}" \
-            -H "Accept: application/vnd.github+json" \
-            https://api.github.com/repos/firstpoca-hue/auto-failover-gcp/dispatches \
-            -d "{\"event_type\":\"failover_trigger\",\"client_payload\":{\"reason\":\"scheduled_test\",\"timestamp\":\"$TIMESTAMP\"}}"
-          
-          echo "✅ Failover test triggered via GitHub API"
+          gcloud pubsub topics publish failover-notify --message="automated failover test"
+          echo "✅ Failover test triggered via Pub/Sub"
