@@ -50,6 +50,13 @@ jobs:
             --timeout=60s \
             --allow-unauthenticated
 
+      - name: Allow unauthenticated access
+        run: |
+          gcloud functions add-iam-policy-binding $FUNCTION_NAME \
+            --region=$REGION \
+            --member="allUsers" \
+            --role="roles/cloudfunctions.invoker"
+
       - name: Verify deployment
         run: |
           echo "✅ Cloud Function deployed successfully"
