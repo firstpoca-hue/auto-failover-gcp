@@ -1,3 +1,7 @@
+resource "null_resource" "sql_dependency" {
+  depends_on = [module.database]
+}
+
 module "network" {
   source = "./modules/network"
   name = "dr-net"
@@ -5,6 +9,7 @@ module "network" {
   secondary_region = var.secondary_region
   psa_range_name = var.psa_range_name
   psa_prefix_length = var.psa_prefix_length
+  depends_on = [null_resource.sql_dependency]
 }
 
 # --- PRIMARY GKE CLUSTER (always created)
