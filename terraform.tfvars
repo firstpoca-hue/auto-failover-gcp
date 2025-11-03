@@ -78,7 +78,7 @@ function_region     = "us-central1"
  
 # GitHub Actions repository details (used by the Function to call repository_dispatch)
 github_owner        = "firstpoca-hue"
-github_repo         = "auto-failover-gcp"
+github_repo         = "firstpoca-hue/auto-failover-gcp"
 github_event_type   = "failover_trigger"
  
 # If your Function reads the PAT from Secret Manager, set this name; otherwise ignore.

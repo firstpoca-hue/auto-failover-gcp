@@ -206,87 +206,87 @@ jobs:
   # -------------------------------
   # 5️⃣ Infracost Analysis
   # -------------------------------
-  infracost:
-    name: 💰 Cost Analysis
-    needs: plan
-    if: ${{ always() && needs.plan.result == 'success' }}
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ env.WORKING_DIR }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: hashicorp/setup-terraform@v3
+  # infracost:
+  #   name: 💰 Cost Analysis
+  #   needs: plan
+  #   if: ${{ always() && needs.plan.result == 'success' }}
+  #   runs-on: ubuntu-latest
+  #   defaults:
+  #     run:
+  #       working-directory: ${{ env.WORKING_DIR }}
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: hashicorp/setup-terraform@v3
 
-      - name: Setup Infracost
-        uses: infracost/actions/setup@v3
-        with:
-          api-key: ${{ secrets.INFRACOST_API_KEY }}
+  #     - name: Setup Infracost
+  #       uses: infracost/actions/setup@v3
+  #       with:
+  #         api-key: ${{ secrets.INFRACOST_API_KEY }}
 
-      - name: Google Auth
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+  #     - name: Google Auth
+  #       uses: google-github-actions/auth@v2
+  #       with:
+  #         credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      - name: Terraform Init
-        run: terraform init -reconfigure
+  #     - name: Terraform Init
+  #       run: terraform init -reconfigure
 
-      - name: Download Plan Artifact
-        if: ${{ needs.plan.outputs.has_changes == 'true' }}
-        uses: actions/download-artifact@v4
-        with:
-          name: tfplan
-          path: .
+  #     - name: Download Plan Artifact
+  #       if: ${{ needs.plan.outputs.has_changes == 'true' }}
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: tfplan
+  #         path: .
       
-      - name: Generate Plan for Infracost (no changes)
-        if: ${{ needs.plan.outputs.has_changes != 'true' }}
-        run: |
-          terraform plan \
-            -var-file="${{ env.TFVARS_PATH }}" \
-            -input=false -no-color -out=tfplan.bin
+  #     - name: Generate Plan for Infracost (no changes)
+  #       if: ${{ needs.plan.outputs.has_changes != 'true' }}
+  #       run: |
+  #         terraform plan \
+  #           -var-file="${{ env.TFVARS_PATH }}" \
+  #           -input=false -no-color -out=tfplan.bin
 
-      - name: Generate Infracost JSON
-        run: |
-          infracost breakdown \
-            --path=tfplan.bin \
-            --format=json \
-            --out-file=infracost.json
+  #     - name: Generate Infracost JSON
+  #       run: |
+  #         infracost breakdown \
+  #           --path=tfplan.bin \
+  #           --format=json \
+  #           --out-file=infracost.json
 
-      - name: Generate Infracost Report
-        run: |
-          infracost output \
-            --path=infracost.json \
-            --format=html \
-            --out-file=infracost-report.html
+  #     - name: Generate Infracost Report
+  #       run: |
+  #         infracost output \
+  #           --path=infracost.json \
+  #           --format=html \
+  #           --out-file=infracost-report.html
           
-          infracost output \
-            --path=infracost.json \
-            --format=table \
-            --out-file=infracost-summary.txt
+  #         infracost output \
+  #           --path=infracost.json \
+  #           --format=table \
+  #           --out-file=infracost-summary.txt
 
-      - name: Upload Infracost Reports
-        uses: actions/upload-artifact@v4
-        with:
-          name: infracost-reports
-          path: |
-            infracost.json
-            infracost-report.html
-            infracost-summary.txt
+  #     - name: Upload Infracost Reports
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: infracost-reports
+  #         path: |
+  #           infracost.json
+  #           infracost-report.html
+  #           infracost-summary.txt
 
-      - name: Post Cost Summary
-        run: |
-          echo "### 💰 Infrastructure Cost Analysis" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          cat infracost-summary.txt >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          echo "📊 Detailed report available in infracost-reports artifact" >> $GITHUB_STEP_SUMMARY
+  #     - name: Post Cost Summary
+  #       run: |
+  #         echo "### 💰 Infrastructure Cost Analysis" >> $GITHUB_STEP_SUMMARY
+  #         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+  #         cat infracost-summary.txt >> $GITHUB_STEP_SUMMARY
+  #         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+  #         echo "📊 Detailed report available in infracost-reports artifact" >> $GITHUB_STEP_SUMMARY
 
   # -------------------------------
   # 6️⃣ Terraform Apply
   # -------------------------------
   apply:
     name: Terraform Apply
-    needs: [plan, infracost]
+    needs: plan
     if: ${{ always() && (inputs.force_apply || needs.plan.outputs.has_changes == 'true') }}
     runs-on: ubuntu-latest
     defaults:

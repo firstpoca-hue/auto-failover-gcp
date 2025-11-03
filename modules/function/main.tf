@@ -12,8 +12,18 @@ resource "google_pubsub_topic" "failover" {
 resource "google_pubsub_subscription" "failover_sub" {
   name  = "failover-subscription"
   topic = google_pubsub_topic.failover.id
+  
 }
-
+data "google_project" "current" {}
+ 
+resource "google_pubsub_topic_iam_binding" "monitoring_publisher" {
+  topic = google_pubsub_topic.failover.id
+  role  = "roles/pubsub.publisher"
+ 
+  members = [
+    "serviceAccount:service-${data.google_project.current.number}@gcp-terraform-key@hot-cold-drp.iam.gserviceaccount.com"
+  ]
+}
 # resource "google_cloudfunctions_function" "failover_fn" {
 #   name = "failover-trigger"
 #   runtime = "python311"
@@ -102,10 +112,10 @@ resource "google_monitoring_alert_policy" "gke_pod_zero_alert" {
   enabled      = true
 
   conditions {
-    display_name = "Pods = 0 for 10 minutes"
+    display_name = "Pods = 0 for 3 minutes"
     condition_monitoring_query_language {
       query = file("${path.module}/gke_pod_zero_alert.mql")
-      duration = "600s" # 10 minutes
+      duration = "180s" # 10 minutes
       trigger {
         count = 1
       }
@@ -115,7 +125,7 @@ resource "google_monitoring_alert_policy" "gke_pod_zero_alert" {
   notification_channels = [google_monitoring_notification_channel.pubsub_channel.id]
 
   documentation {
-    content   = "Triggered when primary region pods = 0 for 10m. Sends Pub/Sub to invoke Cloud Function and trigger GitHub Actions failover pipeline."
+    content   = "Triggered when primary region pods = 0 for 3m. Sends Pub/Sub to invoke Cloud Function and trigger GitHub Actions failover pipeline."
     mime_type = "text/markdown"
   }
 }
