@@ -21,7 +21,7 @@ resource "google_pubsub_topic_iam_binding" "monitoring_publisher" {
   role  = "roles/pubsub.publisher"
  
   members = [
-    "serviceAccount:service-${data.google_project.current.number}@gcp-terraform-key@hot-cold-drp.iam.gserviceaccount.com"
+    "serviceAccount:service-898745661843@gcp-sa-monitoring.iam.gserviceaccount.com"
   ]
 }
 # resource "google_cloudfunctions_function" "failover_fn" {
