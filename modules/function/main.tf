@@ -111,7 +111,7 @@ resource "google_monitoring_notification_channel" "pubsub_channel" {
   display_name = "Failover Pub/Sub Channel"
   type         = "pubsub"
   labels = {
-    topic = google_pubsub_topic.failover.name
+    topic = google_pubsub_topic.failover.id
   }
 }
 
