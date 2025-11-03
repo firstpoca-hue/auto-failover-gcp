@@ -80,6 +80,15 @@ resource "google_cloudfunctions2_function" "failover_trigger" {
   }
 }
 
+resource "google_cloudfunctions2_function_iam_member" "invoker" {
+  project        = var.project_id
+  location       = var.region
+  cloud_function = google_cloudfunctions2_function.failover_trigger.name
+  role           = "roles/cloudfunctions.invoker"
+  member         = "serviceAccount:service-${data.google_project.current.number}@gcp-sa-monitoring-notification.iam.gserviceaccount.com"
+}
+
+
 
 resource "google_storage_bucket" "function_source" {
   name     = "${var.project_id}-function-source"
@@ -102,7 +111,7 @@ resource "google_monitoring_notification_channel" "pubsub_channel" {
   display_name = "Failover Pub/Sub Channel"
   type         = "pubsub"
   labels = {
-    topic = google_pubsub_topic.failover.id
+    topic = google_pubsub_topic.failover.name
   }
 }
 
