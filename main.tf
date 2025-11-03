@@ -77,3 +77,11 @@ module "monitoring" {
   project_id = var.project_id
   alert_email = var.alert_email
 }
+
+module "function" {
+  source = "./modules/function"
+  project_id = var.project_id
+  region = var.primary_region
+  github_repo = var.github_repo
+  github_pat_secret = var.github_pat_secret
+  }

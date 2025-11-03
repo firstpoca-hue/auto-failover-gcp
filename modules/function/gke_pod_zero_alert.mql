@@ -1,0 +1,5 @@
+fetch prometheus_target
+| metric 'prometheus.googleapis.com/kube_deployment_status_replicas_available/gauge'
+| filter (metric.deployment == 'web-app' && resource.namespace == 'default')
+| group_by 10m, [value_available: mean(value.kube_deployment_status_replicas_available)]
+| condition val() < 1

@@ -1,3 +1,12 @@
-variable "source_bucket" {}
-variable "source_object" {}
-variable "github_secret_name" {}
+variable "project_id" {
+  
+}
+variable "region" {}
+variable "github_repo" {
+  
+}
+
+variable "github_pat_secret" {
+  
+}
+
