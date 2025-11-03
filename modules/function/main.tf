@@ -1,6 +1,6 @@
 data "google_secret_manager_secret_version" "my_pat_secret" {
   secret  = var.github_pat_secret
-  version = "8"
+  version = "9"
   fetch_secret_data = true
 
 }
