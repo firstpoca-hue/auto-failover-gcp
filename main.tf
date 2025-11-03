@@ -72,11 +72,11 @@ module "artifact_registry" {
   region = var.primary_region
 }
 
-module "monitoring" {
-  source = "./modules/monitoring"
-  project_id = var.project_id
-  alert_email = var.alert_email
-}
+# module "monitoring" {
+#   source = "./modules/monitoring"
+#   project_id = var.project_id
+#   alert_email = var.alert_email
+# }
 
 module "function" {
   source = "./modules/function"
