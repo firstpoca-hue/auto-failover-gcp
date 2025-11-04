@@ -20,7 +20,8 @@ module "gke_primary" {
   region        = var.primary_region
   network_id    = module.network.vpc_id
   subnetwork_id = module.network.primary_subnet_id   # 🔹 FIXED: use primary subnet
-  enabled       = true                               # 🔹 Explicitly set to always create
+  enabled       = true  
+  sql_private_ip = module.database.primary_private_ip                           # 🔹 Explicitly set to always create
 }
 
 # --- SECONDARY GKE CLUSTER (only during failover)
@@ -33,7 +34,8 @@ module "gke_secondary" {
   region        = var.secondary_region
   network_id    = module.network.vpc_id
   subnetwork_id = module.network.secondary_subnet_id
-  enabled       = var.deploy_secondary               # 🔹 Passed to module for internal control
+  enabled       = var.deploy_secondary
+  sql_private_ip = module.database.primary_private_ip               # 🔹 Passed to module for internal control
 }
 
 module "database" {

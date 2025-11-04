@@ -56,10 +56,12 @@ output "neg_self_link" {
   description = "Self link for the app service NEG"
 }
 
-output "sql_private_ip" {
-  value = google_sql_database_instance.primary.private_ip_address
-}
 
 output "gke_cluster_name" {
   value = google_container_cluster.this[0].name
+}
+
+
+output "sql_private_ip" {
+  value = var.sql_private_ip
 }

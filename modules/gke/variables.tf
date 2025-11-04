@@ -27,3 +27,8 @@ variable "enabled" {
   default     = true
 }
 variable project_id{}
+
+variable "sql_private_ip" {
+  type        = string
+  description = "Private IP of Cloud SQL instance"
+}
