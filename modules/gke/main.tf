@@ -12,6 +12,9 @@ resource "google_container_cluster" "this" {
   release_channel {
     channel = "REGULAR"
   }
+   workload_identity_config {
+    workload_pool = "${var.project_id}.svc.id.goog"
+  }
 }
 
 # 🔹 Node pool depends on the cluster
@@ -28,6 +31,18 @@ resource "google_container_node_pool" "nodes" {
     disk_size_gb  = 50 
   }
 }
+resource "google_compute_firewall" "allow_gke_to_sql" {
+  name    = "allow-gke-to-sql"
+  network = var.network_id
+
+  allow {
+    protocol = "tcp"
+    ports    = ["3306"]
+  }
+
+  source_ranges = ["10.0.0.0/8"] # match your GKE subnet range
+  target_tags   = ["cloudsql"]
+}
 
 # Output only if cluster is created
 
@@ -39,4 +54,12 @@ output "cluster_name" {
 output "neg_self_link" {
   value = var.enabled ? "projects/${var.project_id}/zones/${var.region}-a/networkEndpointGroups/app-service-neg" : null
   description = "Self link for the app service NEG"
+}
+
+output "sql_private_ip" {
+  value = google_sql_database_instance.primary.private_ip_address
+}
+
+output "gke_cluster_name" {
+  value = google_container_cluster.this[0].name
 }

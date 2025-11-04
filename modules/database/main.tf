@@ -90,3 +90,7 @@ output "replica_connection_name" {
 output "replica_private_ip" {
   value = var.enable_replica ? google_sql_database_instance.replica[0].private_ip_address : null
 }
+
+output "sql_private_ip" {
+  value = google_sql_database_instance.primary.private_ip_address
+}
