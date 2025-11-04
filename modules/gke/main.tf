@@ -32,6 +32,7 @@ resource "google_container_node_pool" "nodes" {
   }
 }
 resource "google_compute_firewall" "allow_gke_to_sql" {
+  count    = var.enabled ? 1 : 0
   name    = "allow-gke-to-sql"
   network = var.network_id
 
