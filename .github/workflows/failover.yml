@@ -3,6 +3,13 @@ name: Failover to Secondary Region
 on:
   workflow_dispatch:
 
+env:
+  PROJECT_ID: hot-cold-drp
+  REGION: us-central1
+  CLUSTER_NAME: gke-primary-cluster
+  REPOSITORY: app-repo
+  IMAGE: app-maintance
+
 permissions:
   contents: read
   id-token: write
@@ -23,6 +30,31 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
         with:
           install_components: 'gke-gcloud-auth-plugin'
+
+      - name: Configure Docker
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev
+
+      - name: Build and Push Image
+        run: |
+          cd app/maintance
+          docker build -t us-central1-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE:$GITHUB_SHA .
+          docker push us-central1-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE:$GITHUB_SHA
+          docker tag us-central1-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE:$GITHUB_SHA \
+                    us-central1-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE:latest
+          docker push us-central1-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$IMAGE:latest
+
+      - name: Get GKE Credentials
+        run: |
+          gcloud container clusters get-credentials $CLUSTER_NAME \
+            --region=$REGION --project=$PROJECT_ID
+          export USE_GKE_GCLOUD_AUTH_PLUGIN=True
+
+      - name: Deploy to GKE
+        env:
+          USE_GKE_GCLOUD_AUTH_PLUGIN: True
+        run: |
+          kubectl apply -f k8s/app-maintance.yaml
+          kubectl scale deployment web-app --replicas=1
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
@@ -62,6 +94,40 @@ jobs:
           
           # Update backend service to use secondary NEG
           # This would update your load balancer configuration
+
+      - name: Get Service URLs
+        env:
+          USE_GKE_GCLOUD_AUTH_PLUGIN: True
+        run: |
+          echo "🚀 Deployment Complete! Access your services:"
+          echo "==========================================="
+          
+          # Get Load Balancer IP
+          LB_IP=$(gcloud compute forwarding-rules list --filter="name~'app'" --format="value(IPAddress)" | head -1)
+          if [ ! -z "$LB_IP" ]; then
+            echo "📱 Application: http://$LB_IP"
+          else
+            echo "📱 Application: Load balancer IP not found"
+          fi
+          
+          # Get Grafana IP
+          GRAFANA_IP=$(kubectl get service grafana -n monitoring -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || echo "pending")
+          if [ "$GRAFANA_IP" != "pending" ] && [ ! -z "$GRAFANA_IP" ]; then
+            echo "📊 Grafana: http://$GRAFANA_IP:3000 (admin/admin123)"
+          else
+            echo "📊 Grafana: IP pending, check 'kubectl get svc grafana -n monitoring'"
+          fi
+          
+          # Get Prometheus IP
+          PROMETHEUS_IP=$(kubectl get service prometheus -n monitoring -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || echo "pending")
+          if [ "$PROMETHEUS_IP" != "pending" ] && [ ! -z "$PROMETHEUS_IP" ]; then
+            echo "📈 Prometheus: http://$PROMETHEUS_IP:9090"
+          else
+            echo "📈 Prometheus: IP pending, check 'kubectl get svc prometheus -n monitoring'"
+          fi
+          
+          echo "==========================================="
+          echo "Note: It may take 5-10 minutes for all services to be fully accessible"
 
       - name: Notify failover complete
         run: |

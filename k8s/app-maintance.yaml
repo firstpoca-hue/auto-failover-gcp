@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-app
+  template:
+    metadata:
+      labels:
+        app: web-app
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "80"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: web-app
+        image: us-central1-docker.pkg.dev/hot-cold-drp/app-repo/app-maintance:latest
+        ports:
+        - containerPort: 80
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-service
+  namespace: default
+  annotations:
+    cloud.google.com/neg: '{"ingress": true}'
+    cloud.google.com/backend-config: '{"ports": {"80":"app-cdn-config"}}'
+spec:
+  selector:
+    app: web-app
+  ports:
+  - port: 80
+    targetPort: 80
+    name: http
+  type: NodePort
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: default
+  name: app-ingress
+  annotations:
+    kubernetes.io/ingress.class: gce
+    kubernetes.io/ingress.allow-http: "true" 
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: app-service
+            port:
+              number: 80
+
+---
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  namespace: default
+  name: app-cdn-config
+spec:
+  cdn:
+    enabled: true
+    cacheMode: CACHE_ALL_STATIC_CONTENT # Use CACHE_ALL_STATIC_CONTENT or FORCE_CACHE_ALL
+    clientTtl: 300                      # Browser cache TTL (5 minutes)
+    defaultTtl: 300                    # Default CDN cache TTL (5 minutes)
+    maxTtl: 600                     # Maximum CDN cache TTL (10 minutes)
+    cachePolicy:
+      includeHost: true           # Cache separately for each Host header
+      includeProtocol: true       # Cache separately for HTTP vs HTTPS
+      includeQueryString: false   # Set to 'true' if query parameters affect content
+  healthCheck:
+    type: HTTP
+    requestPath: /
+    port: 80              # Service port to check
+
+# ---
+# apiVersion: cloud.google.com/v1
+# kind: BackendConfig
+# metadata:
+#   name: app-backendconfig # Name of your BackendConfig
+#   namespace: default       # Must be the same namespace as the Service
+# spec:
+#   healthCheck:
+#     type: HTTP
+#     requestPath: /
+#     port: 80              # Service port to check
+#     # Add other settings like timeoutSec, checkIntervalSec if needed
