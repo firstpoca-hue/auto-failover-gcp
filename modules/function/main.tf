@@ -1,6 +1,6 @@
 data "google_secret_manager_secret_version" "my_pat_secret" {
   secret  = var.github_pat_secret
-  version = "8"
+  version = "9"
   fetch_secret_data = true
 
 }
@@ -79,6 +79,15 @@ resource "google_cloudfunctions2_function" "failover_trigger" {
     retry_policy   = "RETRY_POLICY_RETRY"
   }
 }
+
+resource "google_cloudfunctions2_function_iam_member" "invoker" {
+  project        = var.project_id
+  location       = var.region
+  cloud_function = google_cloudfunctions2_function.failover_trigger.name
+  role           = "roles/cloudfunctions.invoker"
+  member         = "serviceAccount:service-${data.google_project.current.number}@gcp-sa-monitoring-notification.iam.gserviceaccount.com"
+}
+
 
 
 resource "google_storage_bucket" "function_source" {

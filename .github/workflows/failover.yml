@@ -1,8 +1,7 @@
 name: Failover to Secondary Region
 
 on:
-  repository_dispatch:
-    types: [failover_trigger]
+  workflow_dispatch:
 
 permissions:
   contents: read
