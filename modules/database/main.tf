@@ -73,7 +73,25 @@ resource "google_sql_database_instance" "replica" {
 
   depends_on = [google_sql_database_instance.primary]
 }
+# Create a default DB
+resource "google_sql_database" "app_db" {
+  name     = "appdb"
+  instance = google_sql_database_instance.primary.name
+}
+ 
+# Create a DB user
+resource "google_sql_user" "appuser" {
+  name     = "appuser"
+  instance = google_sql_database_instance.primary.name
+  password = data.google_secret_manager_secret_version.my_db_password.secret_data
+}
 
+data "google_secret_manager_secret_version" "my_db_password" {
+  secret  =  "db_user_name"
+  version = "1"
+  fetch_secret_data = true
+
+}
 # Outputs
 output "primary_connection_name" {
   value = google_sql_database_instance.primary.connection_name
