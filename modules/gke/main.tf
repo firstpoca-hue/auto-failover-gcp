@@ -60,8 +60,3 @@ output "neg_self_link" {
 output "gke_cluster_name" {
   value = google_container_cluster.this[0].name
 }
-
-
-output "sql_private_ip" {
-  value = var.sql_private_ip
-}
