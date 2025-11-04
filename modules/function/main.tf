@@ -121,10 +121,10 @@ resource "google_monitoring_alert_policy" "gke_pod_zero_alert" {
   enabled      = true
 
   conditions {
-    display_name = "Pods = 0 for 3 minutes"
+    display_name = "Pods = 0 for 1 minutes"
     condition_monitoring_query_language {
       query = file("${path.module}/gke_pod_zero_alert.mql")
-      duration = "180s" # 10 minutes
+      duration = "60s" # 10 minutes
       trigger {
         count = 1
       }

@@ -68,7 +68,7 @@ jobs:
         # Get Load Balancer IP
         LB_IP=$(gcloud compute forwarding-rules list --filter="name~'app'" --format="value(IPAddress)" | head -1)
         if [ ! -z "$LB_IP" ]; then
-          echo "📱 Application: https://$LB_IP"
+          echo "📱 Application: http://$LB_IP"
         else
           echo "📱 Application: Load balancer IP not found"
         fi
