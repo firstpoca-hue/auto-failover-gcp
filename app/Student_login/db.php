@@ -1,5 +1,5 @@
 <?php
-$host = '10.141.240.2';
+$host = '10.115.208.2';
 $dbname = 'appdb';
 $username = 'appuser';
 $password = 'StrongPassword123!';
