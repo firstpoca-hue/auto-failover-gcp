@@ -29,10 +29,6 @@ output "neg_self_link" {
     value = module.gke_primary.neg_self_link
 }
 
-output "gke_cluster_name" {
-    value = module.gke_primary.gke_cluster_name
-}
-
 ##Database Module Outputs
 output "primary_connection_name" {
   value = module.database.primary_connection_name
