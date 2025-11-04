@@ -31,19 +31,6 @@ resource "google_container_node_pool" "nodes" {
     disk_size_gb  = 50 
   }
 }
-resource "google_compute_firewall" "allow_gke_to_sql" {
-  count    = var.enabled ? 1 : 0
-  name    = "allow-gke-to-sql"
-  network = var.network_id
-
-  allow {
-    protocol = "tcp"
-    ports    = ["3306"]
-  }
-
-  source_ranges = ["10.0.0.0/8"] # match your GKE subnet range
-  target_tags   = ["cloudsql"]
-}
 
 # Output only if cluster is created
 

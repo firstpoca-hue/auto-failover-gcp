@@ -55,6 +55,19 @@ resource "google_service_networking_connection" "private_vpc_connection" {
   
 }
 
+resource "google_compute_firewall" "allow_gke_to_sql" {
+  name    = "allow-gke-to-sql"
+  network = google_compute_network.vpc.id
+
+  allow {
+    protocol = "tcp"
+    ports    = ["3306"]
+  }
+
+  source_ranges = ["10.0.0.0/8"] # match your GKE subnet range
+  target_tags   = ["cloudsql"]
+}
+
 
 
 output "vpc_id" {
