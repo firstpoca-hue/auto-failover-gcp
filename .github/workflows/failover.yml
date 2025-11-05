@@ -56,11 +56,6 @@ jobs:
           kubectl apply -f k8s/app-maintance.yaml
           kubectl scale deployment web-app --replicas=1
 
-      - name: Promote database replica to primary
-        run: |
-          echo "📊 Promoting database replica to primary"
-          gcloud sql instances promote-replica replica-db-fbd55e96
-
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
 
