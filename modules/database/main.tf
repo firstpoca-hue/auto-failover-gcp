@@ -60,10 +60,6 @@ resource "google_sql_database_instance" "replica" {
   region               = var.secondary_region
   deletion_protection  = false
   master_instance_name = google_sql_database_instance.primary.name
-  
-  replica_configuration {
-    failover_target = true
-  }
 
   settings {
     tier = var.db_tier
