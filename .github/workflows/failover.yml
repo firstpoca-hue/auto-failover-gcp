@@ -56,6 +56,11 @@ jobs:
           kubectl apply -f k8s/app-maintance.yaml
           kubectl scale deployment web-app --replicas=1
 
+      - name: Promote database replica to primary
+        run: |
+          echo "📊 Promoting database replica to primary"
+          gcloud sql instances promote-replica replica-db-fb0e7775 --failover
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
 
@@ -94,6 +99,11 @@ jobs:
           
           # Update backend service to use secondary NEG
           # This would update your load balancer configuration
+      
+      - name: Wait for secondary cluster to be ready
+        run: |
+          echo "⏳ Waiting for secondary cluster to be ready..."
+          sleep 120
 
       - name: Get Service URLs
         env:
@@ -103,7 +113,7 @@ jobs:
           echo "==========================================="
           
           # Get Load Balancer IP
-          LB_IP=$(gcloud compute forwarding-rules list --filter="name~'app'" --format="value(IPAddress)" | head -1)
+          LB_IP=$(gcloud compute forwarding-rules list --region=us-west1 --format="value(IPAddress)" | head -1)
           if [ ! -z "$LB_IP" ]; then
             echo "📱 Application: http://$LB_IP"
           else
